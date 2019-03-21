@@ -1,0 +1,14 @@
+# binaries
+*.o
+
+# IDE
+.vs
+.vscode
+
+# Archive
+*.zip
+*.tar.gz
+
+# Report
+*.docx
+*.pdf

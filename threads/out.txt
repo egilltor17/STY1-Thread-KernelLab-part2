@@ -1,0 +1,164 @@
+Pros: 1 Cons:1 Buffer:10 ??:1
+Entrees: 
+	READY(produced)= 7 
+	SOLD(consumed)=0
+Steaks: 
+	READY(produced)= 6 
+	SOLD(consumed)=0
+Vegan: 
+	READY(produced)= 4 
+	SOLD(consumed)=0
+Desserts: 
+	READY(produced)= 7 
+	SOLD(consumed)=0
+Entrees: 
+	READY(produced)= 0 
+	SOLD(consumed)=7
+Steaks: 
+	READY(produced)= 0 
+	SOLD(consumed)=6
+Vegan: 
+	READY(produced)= 0 
+	SOLD(consumed)=4
+Desserts: 
+	READY(produced)= 0 
+	SOLD(consumed)=7
+initializing the circular buffer!
+/dev/random test: 1201646665 
+Spawning thread 1 as a producer 
+Steak Menu! cos x is 3
+         _.-.         
+       ,'/ //\       
+      /// // /)       
+     /// // //|       
+    /// // ///        
+   /// // ///         
+  (`: // ///          
+   `;`: ///           
+   / /:`:/            
+  / /  `'             
+ / /                  
+(_/  hh               
+Putting production 3 in slot 0
+Making E & V cos x is 0
+Putting production 0 in slot 1
+Making E & V cos x is 0
+Putting production 0 in slot 2
+Steak Menu! cos x is 3
+         _.-.         
+       ,'/ //\       
+      /// // /)       
+     /// // //|       
+    /// // ///        
+   /// // ///         
+  (`: // ///          
+   `;`: ///           
+   / /:`:/            
+  / /  `'             
+ / /                  
+(_/  hh               
+Putting production 3 in slot 3
+Steak Only! cos x is 2
+Putting production 2 in slot 4
+Making V & D cos x is 1
+         _.-.         
+       ,'/ //\       
+      /// // /)       
+     /// // //|       
+    /// // ///        
+   /// // ///         
+  (`: // ///          
+   `;`: ///           
+   / /:`:/            
+  / /  `'             
+ / /                  
+(_/  hh               
+Putting production 1 in slot 5
+Steak Menu! cos x is 3
+         _.-.         
+       ,'/ //\       
+      /// // /)       
+     /// // //|       
+    /// // ///        
+   /// // ///         
+  (`: // ///          
+   `;`: ///           
+   / /:`:/            
+  / /  `'             
+ / /                  
+(_/  hh               
+Putting production 3 in slot 6
+Steak Menu! cos x is 3
+         _.-.         
+       ,'/ //\       
+      /// // /)       
+     /// // //|       
+    /// // ///        
+   /// // ///         
+  (`: // ///          
+   `;`: ///           
+   / /:`:/            
+  / /  `'             
+ / /                  
+(_/  hh               
+Putting production 3 in slot 7
+Making V & D cos x is 1
+         _.-.         
+       ,'/ //\       
+      /// // /)       
+     /// // //|       
+    /// // ///        
+   /// // ///         
+  (`: // ///          
+   `;`: ///           
+   / /:`:/            
+  / /  `'             
+ / /                  
+(_/  hh               
+Putting production 1 in slot 8
+Steak Menu! cos x is 3
+         _.-.         
+       ,'/ //\       
+      /// // /)       
+     /// // //|       
+    /// // ///        
+   /// // ///         
+  (`: // ///          
+   `;`: ///           
+   / /:`:/            
+  / /  `'             
+ / /                  
+(_/  hh               
+Putting production 3 in slot 9
+The buffer is full :( 
+Thread Runningtime was ~19sec. 
+Spawning thread 2 as a consumer
+Consumer takes prod from slot 0 and consumes prod 3 
+Steak Menu! Ví, Ví, ce moi! cos i is 3
+Consumer takes prod from slot 1 and consumes prod 0 
+I must have orderd E & V cos i is 0
+Consumer takes prod from slot 2 and consumes prod 0 
+I must have orderd E & V cos i is 0
+Consumer takes prod from slot 3 and consumes prod 3 
+Steak Menu! Ví, Ví, ce moi! cos i is 3
+Consumer takes prod from slot 4 and consumes prod 2 
+MEEEEEET! (Steak Only) cos i is 2
+Consumer takes prod from slot 5 and consumes prod 1 
+Who orderd this stuff(V & E)? ME? 1
+Consumer takes prod from slot 6 and consumes prod 3 
+Steak Menu! Ví, Ví, ce moi! cos i is 3
+Consumer takes prod from slot 7 and consumes prod 3 
+Steak Menu! Ví, Ví, ce moi! cos i is 3
+Consumer takes prod from slot 8 and consumes prod 1 
+Who orderd this stuff(V & E)? ME? 1
+Consumer takes prod from slot 9 and consumes prod 3 
+Steak Menu! Ví, Ví, ce moi! cos i is 3
+The buffer is empty :( 
+Thread Runningtime was ~78sec. 
+
+
+
+This party is over!!
+Turning off the lights.
+Goodbye and thanks of all the fish!
+
