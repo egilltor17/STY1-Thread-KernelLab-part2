@@ -67,6 +67,8 @@ sem_t free_slot_lock; // protects the buffer and free_slot index
  * We added the locks for the ringbuffer but you may  *
  * need more locks, right?                            *
  ******************************************************/
+sem_t sem_spoon;
+
 sem_t sem_entree_produced;
 sem_t sem_entree_consumed;
 sem_t sem_steaks_produced;

@@ -73,10 +73,12 @@ void buffer_init(unsigned int buffersize) {
      * NOTE!!! YOU MUST FIRST CREATE THE SEMAPHORES       *
      * IN buffer.h                                        *
      ******************************************************/
-    Sem_init(&sem_producers, 0, buffersize);	/* empty slots - producer part of consumer/producer algo.*/
-    Sem_init(&sem_consumers, 0, 0);           	/* full slots  - consumer part of consumer/producer algo.*/
-    Sem_init(&last_slot_lock, 0, 1);      		/* mutex       - protects the buffer and last_slot index*/
-    Sem_init(&free_slot_lock, 0, 1);      		/* mutex       - protects the buffer and free_slot index*/
+    Sem_init(&sem_producers, 0, buffersize);	/* empty slots - producer part of consumer/producer algo. */
+    Sem_init(&sem_consumers, 0, 0);           	/* full slots  - consumer part of consumer/producer algo. */
+    Sem_init(&last_slot_lock, 0, 1);      		/* mutex       - protects the buffer and last_slot index */
+    Sem_init(&free_slot_lock, 0, 1);      		/* mutex       - protects the buffer and free_slot index */
+
+	Sem_init(&sem_spoon, 0, 2);					/* nr of spoons- protects the number of avalible spoons */
 
 	Sem_init(&sem_entree_produced, 0, 1);		/* mutex       - protects the entree_produced counter */
 	Sem_init(&sem_entree_consumed, 0, 1);		/* mutex       - protects the entree_consumed counter */
@@ -202,9 +204,13 @@ int consume_entree(){
         rand_sleep(10000);
         return -1;
     } else {
-        entree_produced--;
+		P(&sem_entree_produced);
+        	entree_produced--;
+		V(&sem_entree_produced);
         rand_sleep(1000);
-        entree_consumed++;
+		P(&sem_entree_consumed);
+        	entree_consumed++;
+		V(&sem_entree_consumed);
     }
     return 0;
 }
@@ -217,9 +223,13 @@ int consume_steak(){
         rand_sleep(10000);
         return -1;
     } else {
-        steaks_produced--;
+		P(&sem_steaks_produced);
+        	steaks_produced--;
+		V(&sem_steaks_produced);
         rand_sleep(3000);
-        steaks_consumed++;
+        P(&sem_steaks_consumed);
+			steaks_consumed++;
+        V(&sem_steaks_consumed);
     }
     return 0;
 }
@@ -232,11 +242,15 @@ int consume_vegan() {
         rand_sleep(10000);
         return -1;
     } else {
-        vegan_produced--;
+		P(&sem_vegan_produced);
+        	vegan_produced--;
+		V(&sem_vegan_produced);
         rand_sleep(500);
         system("./munch.sh");
         rand_sleep(500);
-        vegan_consumed++;
+        P(&sem_vegan_consumed);
+			vegan_consumed++;
+        V(&sem_vegan_consumed);
     }
     return 0;
 }
@@ -257,11 +271,19 @@ int consume_dessert() {
         while (!spoon) {
             rand_sleep(10);
         }
-        spoon--;
-        dessert_produced--;
+		P(&sem_spoon);
+			spoon--;
+		V(&sem_spoon);
+		P(&sem_dessert_produced);
+			dessert_produced--;
+		V(&sem_dessert_produced);
         rand_sleep(600);
-        dessert_consumed++;
-        spoon++;
+		P(&sem_dessert_consumed);
+			dessert_consumed++;
+		V(&sem_dessert_consumed);
+		P(&sem_spoon);
+			spoon++;
+		V(&sem_spoon);
     }
     return 0;   
 }
