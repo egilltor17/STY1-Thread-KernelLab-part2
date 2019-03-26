@@ -34,6 +34,7 @@ long rand_sleep(int ms)
     usleep( ret );
     return ret;
 }
+
 // ## Read 4 random chars from RANDFILE and makes an int
 unsigned int get_rand_int_from_file() {
     unsigned int ret;
@@ -196,69 +197,72 @@ struct timeval* produce(unsigned int* i) {
 // ## The work functions for consumers #####################//
 int consume_entree(){
     if (entree_produced < 1) {
-      // if this happens then something bad is going on :/
-      sio_puts("WHO STOLE MY ENTREE!!!!\n");
-// ## PENALTY FOR LOOSING AN ORDER !!! YOU MAY NOT CHANGE THIS #
-      rand_sleep(10000);
-      return -1;
+        // if this happens then something bad is going on :/
+        sio_puts("WHO STOLE MY ENTREE!!!!\n");
+        // ## PENALTY FOR LOOSING AN ORDER !!! YOU MAY NOT CHANGE THIS #
+        rand_sleep(10000);
+        return -1;
     } else {
-      entree_produced--;
-      rand_sleep(1000);
-      entree_consumed++;
+        entree_produced--;
+        rand_sleep(1000);
+        entree_consumed++;
     }
     return 0;
 }
+
 int consume_steak(){
     if (steaks_produced < 1) {
-      // ## if this happens then something bad is going on :/
-      sio_puts("STEAK THEAF !\n");
-// ## PENALTY FOR LOOSING AN ORDER !!! YOU MAY NOT CHANGE THIS #
-      rand_sleep(10000);
-      return -1;
+        // ## if this happens then something bad is going on :/
+        sio_puts("STEAK THEAF !\n");
+        // ## PENALTY FOR LOOSING AN ORDER !!! YOU MAY NOT CHANGE THIS #
+        rand_sleep(10000);
+        return -1;
     } else {
-      steaks_produced--;
-      rand_sleep(3000);
-      steaks_consumed++;
+        steaks_produced--;
+        rand_sleep(3000);
+        steaks_consumed++;
     }
     return 0;
 }
+
 int consume_vegan() {
     if (vegan_produced < 1) {
-      // ## if this happens then something bad is going on :/
-      sio_puts("WHO STEALS A VEGAN DISH?! \n");
-// ## PENALTY FOR LOOSING AN ORDER !!! YOU MAY NOT CHANGE THIS #
-      rand_sleep(10000);
-      return -1;
+        // ## if this happens then something bad is going on :/
+        sio_puts("WHO STEALS A VEGAN DISH?! \n");
+        // ## PENALTY FOR LOOSING AN ORDER !!! YOU MAY NOT CHANGE THIS #
+        rand_sleep(10000);
+        return -1;
     } else {
-      vegan_produced--;
-      rand_sleep(500);
-      system("./munch.sh");
-      rand_sleep(500);
-      vegan_consumed++;
+        vegan_produced--;
+        rand_sleep(500);
+        system("./munch.sh");
+        rand_sleep(500);
+        vegan_consumed++;
     }
     return 0;
 }
+
 int consume_dessert() {
     // ## The resturant only has two spoons :( Ppl. will have to share!
     // #################################################################
     static int spoon = 2; // ## YOU MAY NOT CHANGE THIS!! ##############
     // #################################################################
     if (dessert_produced < 1) {
-      // ## if this happens then something bad is going on :/
-      sio_puts("I SCREAM FOR ICE-CREAM?! \n");
-// ## PENALTY FOR LOOSING AN ORDER !!! YOU MAY NOT CHANGE THIS #
-      rand_sleep(10000);
-      return -1;
+        // ## if this happens then something bad is going on :/
+        sio_puts("I SCREAM FOR ICE-CREAM?! \n");
+        // ## PENALTY FOR LOOSING AN ORDER !!! YOU MAY NOT CHANGE THIS #
+        rand_sleep(10000);
+        return -1;
     } else {
-      // ## wait for the a spoon.. (is this the best way to do this??)
-      while (!spoon) {
-        rand_sleep(10);
-      }
-      spoon--;
-      dessert_produced--;
-      rand_sleep(600);
-      dessert_consumed++;
-      spoon++;
+        // ## wait for the a spoon.. (is this the best way to do this??)
+        while (!spoon) {
+            rand_sleep(10);
+        }
+        spoon--;
+        dessert_produced--;
+        rand_sleep(600);
+        dessert_consumed++;
+        spoon++;
     }
     return 0;   
 }
@@ -271,25 +275,25 @@ struct timeval* consume(unsigned int i) {
     struct timeval* ret = (struct timeval*) malloc( sizeof(struct timeval) );
     gettimeofday(&start, NULL);
     switch (i) {
-      case 0: 
-        printf("I must have orderd E & V cos i is %u\n", i);
-        consume_entree(); // entree and vegan dish
-        consume_vegan();
-        break;
-      case 1:
-        printf("Who orderd this stuff(V & E)? ME? %u\n", i);
-        consume_vegan(); // vegan and dessert
-        consume_dessert();
-        break;
-      case 2:
-        printf("MEEEEEET! (Steak Only) cos i is %u\n", i);
-        consume_steak(); // just the steak
-        break;
-      case 3 :
-        printf("Steak Menu! Ví, Ví, ce moi! cos i is %u\n", i);
-        consume_entree(); // 3 course steak dinner
-        consume_steak();
-        consume_dessert();
+        case 0: 
+            printf("I must have orderd E & V cos i is %u\n", i);
+            consume_entree(); // entree and vegan dish
+            consume_vegan();
+            break;
+        case 1:
+            printf("Who orderd this stuff(V & E)? ME? %u\n", i);
+            consume_vegan(); // vegan and dessert
+            consume_dessert();
+            break;
+        case 2:
+            printf("MEEEEEET! (Steak Only) cos i is %u\n", i);
+            consume_steak(); // just the steak
+            break;
+        case 3 :
+            printf("Steak Menu! Ví, Ví, ce moi! cos i is %u\n", i);
+            consume_entree(); // 3 course steak dinner
+            consume_steak();
+            consume_dessert();
     } // end swtich 
     gettimeofday(&end, NULL);
     timersub(&end, &start, ret);
@@ -298,108 +302,110 @@ struct timeval* consume(unsigned int i) {
 
 // ## The main function for producer threads #############// 
 void* producer( void* vargp ) {
-  // ## used to calculate how long the thread has run.
-  struct timeval thrd_runtime;
-  timerclear(&thrd_runtime);
- 
-  while(producers_run) {
-    if ( !free_slots ) {
-          printf("The buffer is full :( \n");
-           // As the buffer is full set the red light.
-          //             "R G B\n".
-          fprintf(light, "1 0 0\n");
-          fflush(light);
-          break;
-     } else {
-          // Neither full nor empty so we show blue/yellow.
-          //             "R G B\n".
-          fprintf(light, "0 0 1\n");
-          fflush(light);
-     }
+    // ## used to calculate how long the thread has run.
+    struct timeval thrd_runtime;
+    timerclear(&thrd_runtime);
 
-     /******************************************************
-      * MISSING CODE 3/6                                   *
-      * HERE YOU MUST REVISE AND ADD YOUR CODE FROM PART 1 *
-      ******************************************************/
-     
-     // ## if there is a free slot we produce to fill it.
-     if( free_slots ) {
-          // ## produce() takes reference to the product to produce. 
-          unsigned int prod = 0;
-          // ## returns a timeval struct that was malloced. 
-          struct timeval* t = produce(&prod);
-          // ## add to the thread running time total and free t.
-          timeradd(&thrd_runtime, t, &thrd_runtime);
-          free(t); // ef you DELETE ME you will have a MEMORY LEEK!!! 
+    while(producers_run) {
+        if ( !free_slots ) {
+            printf("The buffer is full :( \n");
+            // As the buffer is full set the red light.
+            //             "R G B\n".
+            fprintf(light, "1 0 0\n");
+            fflush(light);
+            break;
+        } else {
+            // Neither full nor empty so we show blue/yellow.
+            //             "R G B\n".
+            fprintf(light, "0 0 1\n");
+            fflush(light);
+        }
 
-          // ## update add produced value (called prod) to the array.
-          printf("Putting production %u in slot %d\n", prod, last_slot);
-          buff[last_slot] = prod;
-          last_slot = last_slot + 1;  // filled a slot so move index
-          if ( last_slot == num_slots ) {
-               last_slot = 0;         // we must not go out-of-bounds.
-          }
-          free_slots = free_slots - 1; // one less free slots available
+        /******************************************************
+         * MISSING CODE 3/6                                   *
+         * HERE YOU MUST REVISE AND ADD YOUR CODE FROM PART 1 *
+         ******************************************************/
+        P(&producers);
+        // ## if there is a free slot we produce to fill it.
 
-     }
-  } // end while
-  printf("Thread Runningtime was ~%lusec. \n", thrd_runtime.tv_sec);
+        // ## produce() takes reference to the product to produce. 
+        unsigned int prod = 0;
+        // ## returns a timeval struct that was malloced. 
+        struct timeval* t = produce(&prod);
+        // ## add to the thread running time total and free t.
+        timeradd(&thrd_runtime, t, &thrd_runtime);
+        free(t); // ef you DELETE ME you will have a MEMORY LEEK!!! 
 
-// this is just for debugging, you may remove this.   
-  print_production_consumptions_state();
+        // ## update add produced value (called prod) to the array.
+        printf("Putting production %u in slot %d\n", prod, last_slot);
+        buff[last_slot] = prod;
+        last_slot = last_slot + 1;  // filled a slot so move index
+        if ( last_slot == num_slots ) {
+              last_slot = 0;         // we must not go out-of-bounds.
+        }
+        free_slots = free_slots - 1; // one less free slots available
 
-  return NULL;
+        V(&producers);
+    } // end while
+    printf("Thread Runningtime was ~%lusec. \n", thrd_runtime.tv_sec);
+
+    // this is just for debugging, you may remove this.   
+    print_production_consumptions_state();
+
+    return NULL;
 }
 
 // ## The main function for consumer threads #############// 
 void* consumer( void* vargp ) {
- // ## used to calculate how long the thread has run.
-  struct timeval thrd_runtime;
-  timerclear(&thrd_runtime);
-  while (consumers_run) {
-    if (num_slots - free_slots == 0){
-          printf("The buffer is empty :( \n");
-          // As the buffer is empty we start with a green light 
-          //             "R G B\n".
-          fprintf(light, "0 1 0\n");
-          fflush(light);
-          break;
-     } else {
-          // Neither full nor empty so we show blue/yellow.
-          //             "R G B\n".
-          fprintf(light, "0 0 1\n");
-          fflush(light);
-     }
+    // ## used to calculate how long the thread has run.
+    struct timeval thrd_runtime;
+    timerclear(&thrd_runtime);
+    while (consumers_run) {
+        if (num_slots - free_slots == 0){
+            printf("The buffer is empty :( \n");
+            // As the buffer is empty we start with a green light 
+            //             "R G B\n".
+            fprintf(light, "0 1 0\n");
+            fflush(light);
+            break;
+        } else {
+            // Neither full nor empty so we show blue/yellow.
+            //             "R G B\n".
+            fprintf(light, "0 0 1\n");
+            fflush(light);
+        }
 
-     /******************************************************
-      * MISSING CODE 4/6                                   *
-      * HERE YOU MUST REVISE AND ADD YOUR CODE FROM PART 1 *
-      ******************************************************/     
+        /******************************************************
+         * MISSING CODE 4/6                                   *
+         * HERE YOU MUST REVISE AND ADD YOUR CODE FROM PART 1 *
+         ******************************************************/     
 
-     if (num_slots - free_slots) {
-          printf("Consumer takes prod from slot %d ", first_slot);
-          int tmp_prod = buff[first_slot];
-          buff[first_slot] = -1;            // zero the slot consumed.
-          first_slot = first_slot + 1;      // update buff index.
-          if (first_slot == num_slots ) {
-               first_slot = 0;              // we must not go out-of-bounds.
-          }
-          free_slots = free_slots + 1;      // one more free slots available
-          
-          printf("and consumes prod %d \n", tmp_prod);
-          struct timeval* t = consume(tmp_prod);
+        P(&consumers);
+        
+        printf("Consumer takes prod from slot %d ", first_slot);
+        int tmp_prod = buff[first_slot];
+        buff[first_slot] = -1;            // zero the slot consumed.
+        first_slot = first_slot + 1;      // update buff index.
+        if (first_slot == num_slots ) {
+            first_slot = 0;              // we must not go out-of-bounds.
+        }
+        free_slots = free_slots + 1;      // one more free slots available
+        
+        printf("and consumes prod %d \n", tmp_prod);
+        struct timeval* t = consume(tmp_prod);
 
-          timeradd(&thrd_runtime, t, &thrd_runtime);
-          free(t); // ef you DELETE ME you will have a MEMORY LEEK!!!     
-     }  
-     
-  } // end while
-  printf("Thread Runningtime was ~%lusec. \n", thrd_runtime.tv_sec);
+        timeradd(&thrd_runtime, t, &thrd_runtime);
+        free(t); // ef you DELETE ME you will have a MEMORY LEEK!!!     
+        
+        V(&consumers);
+        
+    } // end while
+    printf("Thread Runningtime was ~%lusec. \n", thrd_runtime.tv_sec);
 
-  // this is just for debugging, you may remove this. 
-  print_production_consumptions_state();
+    // this is just for debugging, you may remove this. 
+    print_production_consumptions_state();
 
-  return NULL;
+    return NULL;
 }
 
 pthread_t spawn_producer( thread_info *arg )
