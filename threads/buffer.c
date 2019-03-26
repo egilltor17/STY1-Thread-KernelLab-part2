@@ -413,8 +413,10 @@ pthread_t spawn_producer( thread_info *arg )
       * MISSING CODE 5/6                                   *
       * HERE YOU MUST REVISE AND ADD YOUR CODE FROM PART 1 *
       ******************************************************/
-    
-     return 0;
+     pthread_t tid;
+     int s;
+     Pthread_create(&tid, NULL, producer, &s);
+     return tid;
 }
 
 pthread_t spawn_consumer( thread_info *arg )
@@ -426,6 +428,8 @@ pthread_t spawn_consumer( thread_info *arg )
       * MISSING CODE 6/6                                   *
       * HERE YOU MUST REVISE AND ADD YOUR CODE FROM PART 1 *
       ******************************************************/
-     
-     return 0;
+     pthread_t tid;
+     int s;
+     Pthread_create(&tid, NULL, consumer, &s);
+     return tid;
 }
