@@ -18,13 +18,13 @@ void sigint_handler (int sig) {
 void print_production_consumptions_state() {
     char string [200];
     sprintf(string, "Entrees: \n\tREADY(produced)= %d \n\tSOLD(consumed)=%d\n", entree_produced, entree_consumed);
-    sio_puts(string);
+    Sio_puts(string);
     sprintf(string, "Steaks: \n\tREADY(produced)= %d \n\tSOLD(consumed)=%d\n", steaks_produced, steaks_consumed);
-    sio_puts(string);
+    Sio_puts(string);
     sprintf(string, "Vegan: \n\tREADY(produced)= %d \n\tSOLD(consumed)=%d\n", vegan_produced, vegan_consumed);
-    sio_puts(string);
+    Sio_puts(string);
     sprintf(string, "Desserts: \n\tREADY(produced)= %d \n\tSOLD(consumed)=%d\n", dessert_produced, dessert_consumed);
-    sio_puts(string);
+    Sio_puts(string);
 }
 
 // ## Random sleep functions used in work functions.
@@ -133,24 +133,32 @@ void buffer_exit(void) {
 // ## The work functions for producers #####################//
 int produce_entree() {
     rand_sleep(100);
-    entree_produced++;
+	P(&sem_entree_produced);
+    	entree_produced++;
+	V(&sem_entree_produced);
     return 0;
 }
 int produce_steak(){
     rand_sleep(100);
-    steaks_produced++;
+    P(&sem_steaks_produced);
+		steaks_produced++;
+    V(&sem_steaks_produced);
     return 0;
 }
 int produce_vegan(){
     rand_sleep(100);
     system("./micro.sh");
-    vegan_produced++;
+    P(&sem_vegan_produced);
+		vegan_produced++;
+    V(&sem_vegan_produced);
     return 0;
 }
 int produce_dessert(){
     rand_sleep(100);
     Sio_puts("         _.-.         \n       ,'/ //\\       \n      /// // /)       \n     /// // //|       \n    /// // ///        \n   /// // ///         \n  (`: // ///          \n   `;`: ///           \n   / /:`:/            \n  / /  `'             \n / /                  \n(_/  hh               \n");    
-    dessert_produced++;
+	P(&sem_dessert_produced);
+		dessert_produced++;
+	V(&sem_dessert_produced);
     return 0;
 }
 struct timeval* produce(unsigned int* i) {
@@ -199,7 +207,7 @@ struct timeval* produce(unsigned int* i) {
 int consume_entree(){
     if (entree_produced < 1) {
         // if this happens then something bad is going on :/
-        sio_puts("WHO STOLE MY ENTREE!!!!\n");
+        Sio_puts("WHO STOLE MY ENTREE!!!!\n");
         // ## PENALTY FOR LOOSING AN ORDER !!! YOU MAY NOT CHANGE THIS #
         rand_sleep(10000);
         return -1;
@@ -218,7 +226,7 @@ int consume_entree(){
 int consume_steak(){
     if (steaks_produced < 1) {
         // ## if this happens then something bad is going on :/
-        sio_puts("STEAK THEAF !\n");
+        Sio_puts("STEAK THEAF !\n");
         // ## PENALTY FOR LOOSING AN ORDER !!! YOU MAY NOT CHANGE THIS #
         rand_sleep(10000);
         return -1;
@@ -237,7 +245,7 @@ int consume_steak(){
 int consume_vegan() {
     if (vegan_produced < 1) {
         // ## if this happens then something bad is going on :/
-        sio_puts("WHO STEALS A VEGAN DISH?! \n");
+        Sio_puts("WHO STEALS A VEGAN DISH?! \n");
         // ## PENALTY FOR LOOSING AN ORDER !!! YOU MAY NOT CHANGE THIS #
         rand_sleep(10000);
         return -1;
@@ -262,7 +270,7 @@ int consume_dessert() {
     // #################################################################
     if (dessert_produced < 1) {
         // ## if this happens then something bad is going on :/
-        sio_puts("I SCREAM FOR ICE-CREAM?! \n");
+        Sio_puts("I SCREAM FOR ICE-CREAM?! \n");
         // ## PENALTY FOR LOOSING AN ORDER !!! YOU MAY NOT CHANGE THIS #
         rand_sleep(10000);
         return -1;
