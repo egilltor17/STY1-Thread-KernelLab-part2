@@ -80,6 +80,7 @@ void buffer_init(unsigned int buffersize) {
     Sem_init(&first_slot_lock, 0, 1);      		/* mutex       - protects the buffer and first_slot index */
 
 	Sem_init(&sem_spoon, 0, 2);					/* nr of spoons- protects the number of avalible spoons */
+	Sem_init(&sem_time, 0, 1);					/* mutex	   - protects the prosses time */
 
 	Sem_init(&sem_entree_produced, 0, 1);		/* mutex       - protects the entree_produced counter */
 	Sem_init(&sem_entree_consumed, 0, 1);		/* mutex       - protects the entree_consumed counter */
