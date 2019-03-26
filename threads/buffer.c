@@ -8,25 +8,21 @@ FILE* devrand;
 
 // ## Signal handler to handle SIGINT (Ctrl-C)
 void sigint_handler (int sig) {
-  printf("\n\nCtrl-C was caught\n");
-  printf("Halting all threads..\n\n");
-  producers_run = 0;
-  consumers_run = 0;
+    printf("\n\nCtrl-C was caught\n");
+    printf("Halting all threads..\n\n");
+    producers_run = 0;
+    consumers_run = 0;
 }
 
 void print_production_consumptions_state() {
     char string [200];
-    sprintf(string, "Entrees: \n\tREADY(produced)= %d \n\tSOLD(consumed)=%d\n", 
-              entree_produced, entree_consumed);
+    sprintf(string, "Entrees: \n\tREADY(produced)= %d \n\tSOLD(consumed)=%d\n", entree_produced, entree_consumed);
     sio_puts(string);
-    sprintf(string, "Steaks: \n\tREADY(produced)= %d \n\tSOLD(consumed)=%d\n", 
-              steaks_produced, steaks_consumed);
+    sprintf(string, "Steaks: \n\tREADY(produced)= %d \n\tSOLD(consumed)=%d\n", steaks_produced, steaks_consumed);
     sio_puts(string);
-    sprintf(string, "Vegan: \n\tREADY(produced)= %d \n\tSOLD(consumed)=%d\n", 
-              vegan_produced, vegan_consumed);
+    sprintf(string, "Vegan: \n\tREADY(produced)= %d \n\tSOLD(consumed)=%d\n", vegan_produced, vegan_consumed);
     sio_puts(string);
-    sprintf(string, "Desserts: \n\tREADY(produced)= %d \n\tSOLD(consumed)=%d\n", 
-              dessert_produced, dessert_consumed);
+    sprintf(string, "Desserts: \n\tREADY(produced)= %d \n\tSOLD(consumed)=%d\n", dessert_produced, dessert_consumed);
     sio_puts(string);
 }
 
@@ -47,68 +43,70 @@ unsigned int get_rand_int_from_file() {
 
 // ## INITILIZATION OF the RINGBUFFER ########################//
 void buffer_init(unsigned int buffersize) {
-     printf("initializing the circular buffer!\n");
-     // ## Set the two thread run consditions 
-     producers_run = 1; // while true producers loop.
-     consumers_run = 1; // while true consumers loop.
-     
-     // ## Allocating the ringbuffer and initializing variabls. 
-     num_slots = buffersize; // size of the buffer in slots.
-     buff = (unsigned int*) malloc( num_slots*sizeof(unsigned int) );
-     first_slot = 0;         // the front of circle
-     last_slot = 0;          // the end of the circle
-     free_slots = num_slots; // the number of empty slots
-     
-     entree_produced  = 0;
-     entree_consumed  = 0;
-     steaks_produced  = 0;
-     steaks_consumed  = 0;
-     vegan_produced   = 0;
-     vegan_consumed   = 0;
-     dessert_produced = 0;
-     dessert_consumed = 0;
+    printf("initializing the circular buffer!\n");
+    // ## Set the two thread run consditions 
+    producers_run = 1; // while true producers loop.
+    consumers_run = 1; // while true consumers loop.
+    
+    // ## Allocating the ringbuffer and initializing variabls. 
+    num_slots = buffersize; // size of the buffer in slots.
+    buff = (unsigned int*) malloc( num_slots*sizeof(unsigned int) );
+    first_slot = 0;         // the front of circle
+    last_slot = 0;          // the end of the circle
+    free_slots = num_slots; // the number of empty slots
+    
+    entree_produced  = 0;
+    entree_consumed  = 0;
+    steaks_produced  = 0;
+    steaks_consumed  = 0;
+    vegan_produced   = 0;
+    vegan_consumed   = 0;
+    dessert_produced = 0;
+    dessert_consumed = 0;
+    
+    // ## Initializing the thread-locking mechanisms 
+    /******************************************************
+     * MISSING CODE 2/6                                   *
+     *                                                    *
+     * NOTE!!! YOU MUST FIRST CREATE THE SEMAPHORES       *
+     * IN buffer.h                                        *
+     ******************************************************/
+    Sem_init(&producers, 0, buffersize);  /* empty slots - producer part of consumer/producer algo.*/
+    Sem_init(&consumers, 0, 0);           /* full slots  - consumer part of consumer/producer algo.*/
+    Sem_init(&last_slot_lock, 0, 1);      /* mutex       - protects the buffer and last_slot index*/
+    Sem_init(&free_slot_lock, 0, 1);      /* mutex       - protects the buffer and free_slot index*/
 
-
-     // ## Initializing the thread-locking mechanisms 
-     /******************************************************
-      * MISSING CODE 2/6                                   *
-      *                                                    *
-      * NOTE!!! YOU MUST FIRST CREATE THE SEMAPHORES       *
-      * IN buffer.h                                        *
-      ******************************************************/
-
-
-     // ## Try to open the /sys/light/light file.
-     if( (light = fopen(LIGHTFILE, "r+")) == NULL) { 
-          // failed and thus we open a local directory file instead.
-          if ( (light = fopen( "./light", "w+")) == NULL) {
-               printf("Failed to open the light file :( \n");
-               exit(-1);
-          }
-     }
-     // ## Try to open the /dev/random file.
-     if( (devrand = fopen(RANDFILE, "r")) == NULL) { 
-          printf("Failed to open the light file :( \n");
-          exit(-1);
-     } else {
+    // ## Try to open the /sys/light/light file.
+    if( (light = fopen(LIGHTFILE, "r+")) == NULL) { 
+        // failed and thus we open a local directory file instead.
+         if ( (light = fopen( "./light", "w+")) == NULL) {
+              printf("Failed to open the light file :( \n");
+              exit(-1);
+      	 }
+    }
+    // ## Try to open the /dev/random file.
+    if( (devrand = fopen(RANDFILE, "r")) == NULL) { 
+        printf("Failed to open the light file :( \n");
+        exit(-1);
+    } else {
         printf("/dev/random test: %d \n", get_rand_int_from_file());
-     } 
-     // As the buffer is empty we start with a green light.
-     //             "R G B\n".
-     fprintf(light, "0 1 0\n");
-     fflush(light); // we must not buffer this output.
+    } 
+    // As the buffer is empty we start with a green light.
+    //             "R G B\n".
+    fprintf(light, "0 1 0\n");
+    fflush(light); // we must not buffer this output.
 }
 
 // ## DESTRUCTION OF the RINGBUFFER ########################//
 void buffer_exit(void) {
-     printf("\n\n\nThis party is over!!\n");
-     rand_sleep(2000);
-     printf("Turning off the lights.\n");
-     fprintf(light, "0 0 0\n");
-     fflush(light);
-     printf("Goodbye and thanks of all the fish!\n\n");
-     fclose(light);
-     free(buff);
+    printf("\n\n\nThis party is over!!\n");
+    rand_sleep(2000);
+    printf("Turning off the lights.\n");
+    fprintf(light, "0 0 0\n");
+    fflush(light);
+    printf("Goodbye and thanks of all the fish!\n\n");
+    fclose(light);
+    free(buff);
 }
 
 // PART 2 TASK A)
@@ -120,23 +118,23 @@ void buffer_exit(void) {
 // ## NOR SHORTEN THE CALLS TO rand_sleep() NOR SKIP OUTPUT#//
 // #########################################################//
 // ## The work functions for producers #####################//
-int  produce_entree() {
+int produce_entree() {
     rand_sleep(100);
     entree_produced++;
     return 0;
 }
-int  produce_steak(){
+int produce_steak(){
     rand_sleep(100);
     steaks_produced++;
     return 0;
 }
-int  produce_vegan(){
+int produce_vegan(){
     rand_sleep(100);
     system("./micro.sh");
     vegan_produced++;
     return 0;
 }
-int  produce_dessert(){
+int produce_dessert(){
     rand_sleep(100);
     printf("         _.-.         \n");
     printf("       ,'/ //\\       \n");
@@ -196,7 +194,7 @@ struct timeval* produce(unsigned int* i) {
 // ## NOR SHORTEN THE CALLS TO rand_sleep() NOR SKIP OUTPUT#//
 // #########################################################//
 // ## The work functions for consumers #####################//
-int  consume_entree(){
+int consume_entree(){
     if (entree_produced < 1) {
       // if this happens then something bad is going on :/
       sio_puts("WHO STOLE MY ENTREE!!!!\n");
@@ -210,7 +208,7 @@ int  consume_entree(){
     }
     return 0;
 }
-int  consume_steak(){
+int consume_steak(){
     if (steaks_produced < 1) {
       // ## if this happens then something bad is going on :/
       sio_puts("STEAK THEAF !\n");
@@ -224,7 +222,7 @@ int  consume_steak(){
     }
     return 0;
 }
-int  consume_vegan() {
+int consume_vegan() {
     if (vegan_produced < 1) {
       // ## if this happens then something bad is going on :/
       sio_puts("WHO STEALS A VEGAN DISH?! \n");
@@ -240,7 +238,7 @@ int  consume_vegan() {
     }
     return 0;
 }
-int  consume_dessert() {
+int consume_dessert() {
     // ## The resturant only has two spoons :( Ppl. will have to share!
     // #################################################################
     static int spoon = 2; // ## YOU MAY NOT CHANGE THIS!! ##############
@@ -398,7 +396,7 @@ void* consumer( void* vargp ) {
   } // end while
   printf("Thread Runningtime was ~%lusec. \n", thrd_runtime.tv_sec);
 
-// this is just for debugging, you may remove this. 
+  // this is just for debugging, you may remove this. 
   print_production_consumptions_state();
 
   return NULL;
@@ -406,30 +404,30 @@ void* consumer( void* vargp ) {
 
 pthread_t spawn_producer( thread_info *arg )
 {
-     printf("Spawning thread %d as a producer \n", arg->thread_nr);
-    
-     producer(NULL);
-     /******************************************************
-      * MISSING CODE 5/6                                   *
-      * HERE YOU MUST REVISE AND ADD YOUR CODE FROM PART 1 *
-      ******************************************************/
-     pthread_t tid;
-     int s;
-     Pthread_create(&tid, NULL, producer, &s);
-     return tid;
+    printf("Spawning thread %d as a producer \n", arg->thread_nr);
+  
+    producer(NULL);
+    /******************************************************
+     * MISSING CODE 5/6                                   *
+     * HERE YOU MUST REVISE AND ADD YOUR CODE FROM PART 1 *
+     ******************************************************/
+    pthread_t tid;
+    int s;
+    Pthread_create(&tid, NULL, producer, &s);
+    return tid;
 }
 
 pthread_t spawn_consumer( thread_info *arg )
 {
-     printf("Spawning thread %d as a consumer\n", arg->thread_nr);
+    printf("Spawning thread %d as a consumer\n", arg->thread_nr);
 
-     consumer(NULL);
-     /******************************************************
-      * MISSING CODE 6/6                                   *
-      * HERE YOU MUST REVISE AND ADD YOUR CODE FROM PART 1 *
-      ******************************************************/
-     pthread_t tid;
-     int s;
-     Pthread_create(&tid, NULL, consumer, &s);
-     return tid;
+    consumer(NULL);
+    /******************************************************
+     * MISSING CODE 6/6                                   *
+     * HERE YOU MUST REVISE AND ADD YOUR CODE FROM PART 1 *
+     ******************************************************/
+    pthread_t tid;
+    int s;
+    Pthread_create(&tid, NULL, consumer, &s);
+    return tid;
 }
