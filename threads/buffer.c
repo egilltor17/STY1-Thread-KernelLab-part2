@@ -72,10 +72,19 @@ void buffer_init(unsigned int buffersize) {
      * NOTE!!! YOU MUST FIRST CREATE THE SEMAPHORES       *
      * IN buffer.h                                        *
      ******************************************************/
-    Sem_init(&producers, 0, buffersize);  /* empty slots - producer part of consumer/producer algo.*/
-    Sem_init(&consumers, 0, 0);           /* full slots  - consumer part of consumer/producer algo.*/
-    Sem_init(&last_slot_lock, 0, 1);      /* mutex       - protects the buffer and last_slot index*/
-    Sem_init(&free_slot_lock, 0, 1);      /* mutex       - protects the buffer and free_slot index*/
+    Sem_init(&producers, 0, buffersize);	/* empty slots - producer part of consumer/producer algo.*/
+    Sem_init(&consumers, 0, 0);           	/* full slots  - consumer part of consumer/producer algo.*/
+    Sem_init(&last_slot_lock, 0, 1);      	/* mutex       - protects the buffer and last_slot index*/
+    Sem_init(&free_slot_lock, 0, 1);      	/* mutex       - protects the buffer and free_slot index*/
+
+	Sem_init(&entree_produced, 0, 1);		/* mutex       - protects the entree_produced counter */
+	Sem_init(&entree_consumed, 0, 1);		/* mutex       - protects the entree_consumed counter */
+	Sem_init(&steaks_produced, 0, 1);		/* mutex       - protects the steaks_produced counter */
+	Sem_init(&steaks_consumed, 0, 1);		/* mutex       - protects the steaks_consumed counter */
+	Sem_init(&vegan_produced, 0, 1);		/* mutex       - protects the vegan_produced counter */
+	Sem_init(&vegan_consumed, 0, 1);		/* mutex       - protects the vegan_consumed counter */
+	Sem_init(&dessert_produced, 0, 1);		/* mutex       - protects the dessert_produced counter */
+	Sem_init(&dessert_consumed, 0, 1);		/* mutex       - protects the dessert_consumed counter */
 
     // ## Try to open the /sys/light/light file.
     if( (light = fopen(LIGHTFILE, "r+")) == NULL) { 
@@ -137,18 +146,7 @@ int produce_vegan(){
 }
 int produce_dessert(){
     rand_sleep(100);
-    printf("         _.-.         \n");
-    printf("       ,'/ //\\       \n");
-    printf("      /// // /)       \n");
-    printf("     /// // //|       \n");
-    printf("    /// // ///        \n");
-    printf("   /// // ///         \n");
-    printf("  (`: // ///          \n");
-    printf("   `;`: ///           \n");
-    printf("   / /:`:/            \n");
-    printf("  / /  `'             \n");
-    printf(" / /                  \n");
-    printf("(_/  hh               \n");    
+    Sio_puts("         _.-.         \n       ,'/ //\\       \n      /// // /)       \n     /// // //|       \n    /// // ///        \n   /// // ///         \n  (`: // ///          \n   `;`: ///           \n   / /:`:/            \n  / /  `'             \n / /                  \n(_/  hh               \n");    
     dessert_produced++;
     return 0;
 }
