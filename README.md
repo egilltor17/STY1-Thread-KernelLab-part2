@@ -16,7 +16,7 @@ Project 05 Thread &amp; Kernel Lab - SC-T-215-STY1 - Operating systems course in
  ***********************************************************
  * Your task is to add functionality such that a process   *
  * can request a signal sent to it when one of the lights  *
- * are turned ON or OFF. You will need to:               *
+ * are turned ON or OFF. You will need to:                 *
  * 1) Add a second sysfs file to the light object called   *
  * "reqsig".                                               *
  *                                                         *
