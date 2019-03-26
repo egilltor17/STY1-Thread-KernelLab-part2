@@ -378,7 +378,7 @@ void* producer( void* vargp ) {
 				}
 			V(&last_slot_lock);
 			P(&free_slot_lock);
-				free_slots++1; 				// one less free slots available
+				free_slots++; 				// one less free slots available
 			V(&free_slot_lock);
 
 			buff[slot] = prod;
