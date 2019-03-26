@@ -72,19 +72,19 @@ void buffer_init(unsigned int buffersize) {
      * NOTE!!! YOU MUST FIRST CREATE THE SEMAPHORES       *
      * IN buffer.h                                        *
      ******************************************************/
-    Sem_init(&producers, 0, buffersize);	/* empty slots - producer part of consumer/producer algo.*/
-    Sem_init(&consumers, 0, 0);           	/* full slots  - consumer part of consumer/producer algo.*/
-    Sem_init(&last_slot_lock, 0, 1);      	/* mutex       - protects the buffer and last_slot index*/
-    Sem_init(&free_slot_lock, 0, 1);      	/* mutex       - protects the buffer and free_slot index*/
+    Sem_init(&sem_producers, 0, buffersize);	/* empty slots - producer part of consumer/producer algo.*/
+    Sem_init(&sem_consumers, 0, 0);           	/* full slots  - consumer part of consumer/producer algo.*/
+    Sem_init(&last_slot_lock, 0, 1);      		/* mutex       - protects the buffer and last_slot index*/
+    Sem_init(&free_slot_lock, 0, 1);      		/* mutex       - protects the buffer and free_slot index*/
 
-	Sem_init(&entree_produced, 0, 1);		/* mutex       - protects the entree_produced counter */
-	Sem_init(&entree_consumed, 0, 1);		/* mutex       - protects the entree_consumed counter */
-	Sem_init(&steaks_produced, 0, 1);		/* mutex       - protects the steaks_produced counter */
-	Sem_init(&steaks_consumed, 0, 1);		/* mutex       - protects the steaks_consumed counter */
-	Sem_init(&vegan_produced, 0, 1);		/* mutex       - protects the vegan_produced counter */
-	Sem_init(&vegan_consumed, 0, 1);		/* mutex       - protects the vegan_consumed counter */
-	Sem_init(&dessert_produced, 0, 1);		/* mutex       - protects the dessert_produced counter */
-	Sem_init(&dessert_consumed, 0, 1);		/* mutex       - protects the dessert_consumed counter */
+	Sem_init(&sem_entree_produced, 0, 1);		/* mutex       - protects the entree_produced counter */
+	Sem_init(&sem_entree_consumed, 0, 1);		/* mutex       - protects the entree_consumed counter */
+	Sem_init(&sem_steaks_produced, 0, 1);		/* mutex       - protects the steaks_produced counter */
+	Sem_init(&sem_steaks_consumed, 0, 1);		/* mutex       - protects the steaks_consumed counter */
+	Sem_init(&sem_vegan_produced, 0, 1);		/* mutex       - protects the vegan_produced counter */
+	Sem_init(&sem_vegan_consumed, 0, 1);		/* mutex       - protects the vegan_consumed counter */
+	Sem_init(&sem_dessert_produced, 0, 1);		/* mutex       - protects the dessert_produced counter */
+	Sem_init(&sem_dessert_consumed, 0, 1);		/* mutex       - protects the dessert_consumed counter */
 
     // ## Try to open the /sys/light/light file.
     if( (light = fopen(LIGHTFILE, "r+")) == NULL) { 
@@ -323,7 +323,7 @@ void* producer( void* vargp ) {
          * MISSING CODE 3/6                                   *
          * HERE YOU MUST REVISE AND ADD YOUR CODE FROM PART 1 *
          ******************************************************/
-        P(&producers);
+        P(&sem_producers);
         // ## if there is a free slot we produce to fill it.
 
         // ## produce() takes reference to the product to produce. 
@@ -343,7 +343,7 @@ void* producer( void* vargp ) {
         }
         free_slots = free_slots - 1; // one less free slots available
 
-        V(&producers);
+        V(&sem_producers);
     } // end while
     printf("Thread Runningtime was ~%lusec. \n", thrd_runtime.tv_sec);
 
@@ -378,7 +378,7 @@ void* consumer( void* vargp ) {
          * HERE YOU MUST REVISE AND ADD YOUR CODE FROM PART 1 *
          ******************************************************/     
 
-        P(&consumers);
+        P(&sem_consumers);
         
         printf("Consumer takes prod from slot %d ", first_slot);
         int tmp_prod = buff[first_slot];
@@ -395,7 +395,7 @@ void* consumer( void* vargp ) {
         timeradd(&thrd_runtime, t, &thrd_runtime);
         free(t); // ef you DELETE ME you will have a MEMORY LEEK!!!     
         
-        V(&consumers);
+        V(&sem_consumers);
         
     } // end while
     printf("Thread Runningtime was ~%lusec. \n", thrd_runtime.tv_sec);

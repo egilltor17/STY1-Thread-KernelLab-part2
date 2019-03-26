@@ -58,8 +58,8 @@ int  consume_vegan();
 int  consume_dessert();
 
 // ## Declaration of locking mechanisms (semaphors) ##########//
-sem_t producers; // producer part of conumer/producer algo.
-sem_t consumers; // consumer part of conumer/producer algo.
+sem_t sem_producers; // producer part of conumer/producer algo.
+sem_t sem_consumers; // consumer part of conumer/producer algo.
 sem_t last_slot_lock; // protects the buffer and last_slot index
 sem_t free_slot_lock; // protects the buffer and free_slot index
 /******************************************************
@@ -67,14 +67,14 @@ sem_t free_slot_lock; // protects the buffer and free_slot index
  * We added the locks for the ringbuffer but you may  *
  * need more locks, right?                            *
  ******************************************************/
-sem_t entree_produced;
-sem_t entree_consumed;
-sem_t steaks_produced;
-sem_t steaks_consumed;
-sem_t vegan_produced;
-sem_t vegan_consumed;
-sem_t dessert_produced;
-sem_t dessert_consumed;
+sem_t sem_entree_produced;
+sem_t sem_entree_consumed;
+sem_t sem_steaks_produced;
+sem_t sem_steaks_consumed;
+sem_t sem_vegan_produced;
+sem_t sem_vegan_consumed;
+sem_t sem_dessert_produced;
+sem_t sem_dessert_consumed;
 
 // ## Functions to create new threads ########################//
 pthread_t spawn_producer(thread_info *arg);
