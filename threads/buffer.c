@@ -12,6 +12,7 @@ void sigint_handler (int sig) {
     printf("Halting all threads..\n\n");
     producers_run = 0;
     consumers_run = 0;
+	buffer_exit();
 }
 
 void print_production_consumptions_state() {
@@ -311,7 +312,7 @@ void* producer( void* vargp ) {
             //             "R G B\n".
             fprintf(light, "1 0 0\n");
             fflush(light);
-            break;
+            // break;
         } else {
             // Neither full nor empty so we show blue/yellow.
             //             "R G B\n".
@@ -365,7 +366,7 @@ void* consumer( void* vargp ) {
             //             "R G B\n".
             fprintf(light, "0 1 0\n");
             fflush(light);
-            break;
+            // break;
         } else {
             // Neither full nor empty so we show blue/yellow.
             //             "R G B\n".
