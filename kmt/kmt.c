@@ -42,7 +42,7 @@ struct regsig_data {
 };
 
 struct list_element {
-    struct regsig_data *data = NULL;   /* the payload */
+    struct regsig_data  *data = NULL;  /* the payload */
     struct list_element *next = NULL;  /* pointer to the next element */
 };
 
