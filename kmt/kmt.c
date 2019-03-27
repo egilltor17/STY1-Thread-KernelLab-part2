@@ -216,11 +216,11 @@ static ssize_t regsig_store( struct kobject* kobj, struct kobj_attribute *attr, 
   node->data = kmalloc(sizeof(struct regsig_data), GFP_KERNEL);
   
   if(kstrtol(*{buf[0], buf[1], buf[2], buf[3], buf[4], NULL}, 10, node->data->pid)) {
-    kprint(KERN_INFO "regsig buf's pid is invalid\n");
+    printk(KERN_INFO "regsig buf's pid is invalid\n");
     return -1
   }
   if(kstrtol(*{buf[6], buf[7], NULL}, 10, node->data->sig)) {
-    kprint(KERN_INFO "regsig buf's sig is invalid\n");
+    printk(KERN_INFO "regsig buf's sig is invalid\n");
     return -1
   }
   node->data->pin = buf[9];
@@ -243,8 +243,8 @@ static ssize_t regsig_store( struct kobject* kobj, struct kobj_attribute *attr, 
     return count;
   }
 
-  struct list_element prev = head;
-  struct list_element runner = head->next;
+  struct list_element *prev = head;
+  struct list_element *runner = head->next;
   while(runner != NULL && runner->data->pid < node->data->pid) {
     prev = runner;
     runner = runner->next;
