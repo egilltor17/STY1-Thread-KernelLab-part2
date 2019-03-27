@@ -35,10 +35,10 @@ int led_init_ok = 0;
 int c; // used for error checking.
 
 struct regsig_data {
-  int pid.
+  int pid;
   int sig;
   char pin;
-  int on
+  int on;
 };
 
 struct list_element {
