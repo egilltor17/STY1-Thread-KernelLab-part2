@@ -265,7 +265,7 @@ int consume_vegan() {
 int consume_dessert() {
     // ## The resturant only has two spoons :( Ppl. will have to share!
     // #################################################################
-    static int spoon = 2; // ## YOU MAY NOT CHANGE THIS!! ##############
+    // static int spoon = 2; // ## YOU MAY NOT CHANGE THIS!! ##############
     // #################################################################
     if (dessert_produced < 1) {
         // ## if this happens then something bad is going on :/
@@ -276,8 +276,8 @@ int consume_dessert() {
     } else {
         // ## wait for the a spoon.. (is this the best way to do this??)
 		P(&sem_spoon);
-			spoon--;
-		V(&sem_spoon);
+		// 	spoon--;
+		// V(&sem_spoon);
 		P(&sem_dessert_produced);
 			dessert_produced--;
 		V(&sem_dessert_produced);
@@ -285,8 +285,8 @@ int consume_dessert() {
 		P(&sem_dessert_consumed);
 			dessert_consumed++;
 		V(&sem_dessert_consumed);
-		P(&sem_spoon);
-			spoon++;
+		// P(&sem_spoon);
+		// 	spoon++;
 		V(&sem_spoon);
     }
     return 0;   
