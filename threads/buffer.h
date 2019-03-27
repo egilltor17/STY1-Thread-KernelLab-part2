@@ -60,9 +60,7 @@ int  consume_dessert();
 // ## Declaration of locking mechanisms (semaphors) ##########//
 sem_t sem_producers; // producer part of conumer/producer algo.
 sem_t sem_consumers; // consumer part of conumer/producer algo.
-sem_t last_slot_lock; // protects the buffer and last_slot index
-sem_t free_slot_lock; // protects the buffer and free_slot index
-sem_t first_slot_lock; // protects the buffer and first_slot index
+sem_t slot_lock;     // protects the buffer indexes
 /******************************************************
  * MISSING CODE 1/6                                   *
  * We added the locks for the ringbuffer but you may  *
@@ -70,6 +68,7 @@ sem_t first_slot_lock; // protects the buffer and first_slot index
  ******************************************************/
 sem_t sem_spoon;
 sem_t sem_time;
+sem_t sem_print;
 
 sem_t sem_entree_produced;
 sem_t sem_entree_consumed;

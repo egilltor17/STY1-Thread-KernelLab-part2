@@ -12,7 +12,6 @@ void sigint_handler (int sig) {
     printf("Halting all threads..\n\n");
     producers_run = 0;
     consumers_run = 0;
-	buffer_exit();
 }
 
 void print_production_consumptions_state() {
@@ -28,8 +27,7 @@ void print_production_consumptions_state() {
 }
 
 // ## Random sleep functions used in work functions.
-long rand_sleep(int ms)
-{
+long rand_sleep(int ms) {
     long sleep_factor = rand() % 1000;
     long ret = (ms * 1000) + (sleep_factor * 1000);
     usleep( ret );
@@ -45,7 +43,7 @@ unsigned int get_rand_int_from_file() {
 
 // ## INITILIZATION OF the RINGBUFFER ########################//
 void buffer_init(unsigned int buffersize) {
-    printf("initializing the circular buffer!\n");
+    Sio_puts("initializing the circular buffer!\n");
     // ## Set the two thread run consditions 
     producers_run = 1; // while true producers loop.
     consumers_run = 1; // while true consumers loop.
@@ -73,23 +71,22 @@ void buffer_init(unsigned int buffersize) {
      * NOTE!!! YOU MUST FIRST CREATE THE SEMAPHORES       *
      * IN buffer.h                                        *
      ******************************************************/
-    Sem_init(&sem_producers, 0, buffersize);	/* empty slots - producer part of consumer/producer algo. */
-    Sem_init(&sem_consumers, 0, 0);           	/* full slots  - consumer part of consumer/producer algo. */
-    Sem_init(&last_slot_lock, 0, 1);      		/* mutex       - protects the buffer and last_slot index  */
-    Sem_init(&free_slot_lock, 0, 1);      		/* mutex       - protects the buffer and free_slot index  */
-    Sem_init(&first_slot_lock, 0, 1);      		/* mutex       - protects the buffer and first_slot index */
+    Sem_init(&sem_producers, 0, buffersize);	/* empty slots 	- producer part of consumer/producer algo. */
+    Sem_init(&sem_consumers, 0, 0);           	/* full slots  	- consumer part of consumer/producer algo. */
+    Sem_init(&slot_lock, 0, 1);      			/* mutex       	- protects the buffer indexes  */
 
-	Sem_init(&sem_spoon, 0, 2);					/* nr of spoons- protects the number of avalible spoons */
-	Sem_init(&sem_time, 0, 1);					/* mutex	   - protects the prosses time */
+	Sem_init(&sem_spoon, 0, 2);					/* nr of spoons	- protects the number of avalible spoons */
+	Sem_init(&sem_time, 0, 1);					/* mutex	   	- protects the prosses time */
+	Sem_init(&sem_print, 0, 1);					/* mutex	   	- protects the print statements */
 
-	Sem_init(&sem_entree_produced, 0, 1);		/* mutex       - protects the entree_produced counter */
-	Sem_init(&sem_entree_consumed, 0, 1);		/* mutex       - protects the entree_consumed counter */
-	Sem_init(&sem_steaks_produced, 0, 1);		/* mutex       - protects the steaks_produced counter */
-	Sem_init(&sem_steaks_consumed, 0, 1);		/* mutex       - protects the steaks_consumed counter */
-	Sem_init(&sem_vegan_produced, 0, 1);		/* mutex       - protects the vegan_produced counter */
-	Sem_init(&sem_vegan_consumed, 0, 1);		/* mutex       - protects the vegan_consumed counter */
-	Sem_init(&sem_dessert_produced, 0, 1);		/* mutex       - protects the dessert_produced counter */
-	Sem_init(&sem_dessert_consumed, 0, 1);		/* mutex       - protects the dessert_consumed counter */
+	Sem_init(&sem_entree_produced, 0, 1);		/* mutex       	- protects the entree_produced  counter */
+	Sem_init(&sem_entree_consumed, 0, 1);		/* mutex       	- protects the entree_consumed  counter */
+	Sem_init(&sem_steaks_produced, 0, 1);		/* mutex       	- protects the steaks_produced  counter */
+	Sem_init(&sem_steaks_consumed, 0, 1);		/* mutex       	- protects the steaks_consumed  counter */
+	Sem_init(&sem_vegan_produced, 0, 1);		/* mutex       	- protects the vegan_produced   counter */
+	Sem_init(&sem_vegan_consumed, 0, 1);		/* mutex       	- protects the vegan_consumed   counter */
+	Sem_init(&sem_dessert_produced, 0, 1);		/* mutex       	- protects the dessert_produced counter */
+	Sem_init(&sem_dessert_consumed, 0, 1);		/* mutex       	- protects the dessert_consumed counter */
 
     // ## Try to open the /sys/light/light file.
     if( (light = fopen(LIGHTFILE, "r+")) == NULL) { 
@@ -101,7 +98,7 @@ void buffer_init(unsigned int buffersize) {
     }
     // ## Try to open the /dev/random file.
     if( (devrand = fopen(RANDFILE, "r")) == NULL) { 
-        printf("Failed to open the light file :( \n");
+        Sio_puts("Failed to open the light file :( \n");
         exit(-1);
     } else {
         printf("/dev/random test: %d \n", get_rand_int_from_file());
@@ -114,12 +111,12 @@ void buffer_init(unsigned int buffersize) {
 
 // ## DESTRUCTION OF the RINGBUFFER ########################//
 void buffer_exit(void) {
-    printf("\n\n\nThis party is over!!\n");
+    Sio_puts("\n\n\nThis party is over!!\n");
     rand_sleep(2000);
-    printf("Turning off the lights.\n");
+    Sio_puts("Turning off the lights.\n");
     fprintf(light, "0 0 0\n");
     fflush(light);
-    printf("Goodbye and thanks of all the fish!\n\n");
+    Sio_puts("So long and thanks for all the fish!\n\n");
     fclose(light);
     free(buff);
 }
@@ -140,14 +137,14 @@ int produce_entree() {
 	V(&sem_entree_produced);
     return 0;
 }
-int produce_steak(){
+int produce_steak() {
     rand_sleep(100);
     P(&sem_steaks_produced);
 		steaks_produced++;
     V(&sem_steaks_produced);
     return 0;
 }
-int produce_vegan(){
+int produce_vegan() {
     rand_sleep(100);
     system("./micro.sh");
     P(&sem_vegan_produced);
@@ -155,7 +152,7 @@ int produce_vegan(){
     V(&sem_vegan_produced);
     return 0;
 }
-int produce_dessert(){
+int produce_dessert() {
     rand_sleep(100);
     Sio_puts("         _.-.         \n       ,'/ //\\       \n      /// // /)       \n     /// // //|       \n    /// // ///        \n   /// // ///         \n  (`: // ///          \n   `;`: ///           \n   / /:`:/            \n  / /  `'             \n / /                  \n(_/  hh               \n");    
 	P(&sem_dessert_produced);
@@ -172,21 +169,21 @@ struct timeval* produce(unsigned int* i) {
     unsigned int x = get_rand_int_from_file() % 4;
     switch (x) {
       case 0: 
-        printf("Making E & V cos x is %u\n", x);
+        Sio_puts("Making E & V cos x is 0\n");
         produce_entree(); // entree and vegan dish
         produce_vegan();
         break;
       case 1:
-        printf("Making V & D cos x is %u\n", x);
+        Sio_puts("Making V & D cos x is 1\n");
         produce_vegan(); // vegan and dessert
         produce_dessert();
         break;
       case 2:
-        printf("Steak Only! cos x is %u\n", x);
+        Sio_puts("Steak Only! cos x is 2\n");
         produce_steak(); // just the steak
         break;
       case 3 :
-        printf("Steak Menu! cos x is %u\n", x);
+        Sio_puts("Steak Menu! cos x is 3\n");
         produce_entree(); // 3 course steak dinner
         produce_steak();
         produce_dessert();
@@ -272,15 +269,12 @@ int consume_dessert() {
     // #################################################################
     if (dessert_produced < 1) {
         // ## if this happens then something bad is going on :/
-        Sio_puts("I SCREAM FOR ICE-CREAM?! \n");
+        Sio_puts("I SCREAM FOR ICE-CREAM?!\n");
         // ## PENALTY FOR LOOSING AN ORDER !!! YOU MAY NOT CHANGE THIS #
         rand_sleep(10000);
         return -1;
     } else {
         // ## wait for the a spoon.. (is this the best way to do this??)
-        while (!spoon) {
-            rand_sleep(10);
-        }
 		P(&sem_spoon);
 			spoon--;
 		V(&sem_spoon);
@@ -305,27 +299,27 @@ struct timeval* consume(unsigned int i) {
     struct timeval end;
     struct timeval* ret = (struct timeval*) malloc( sizeof(struct timeval) );
     gettimeofday(&start, NULL);
-    switch (i) {
-        case 0: 
-            printf("I must have orderd E & V cos i is %u\n", i);
-            consume_entree(); // entree and vegan dish
-            consume_vegan();
-            break;
-        case 1:
-            printf("Who orderd this stuff(V & E)? ME? %u\n", i);
-            consume_vegan(); // vegan and dessert
-            consume_dessert();
-            break;
-        case 2:
-            printf("MEEEEEET! (Steak Only) cos i is %u\n", i);
-            consume_steak(); // just the steak
-            break;
-        case 3 :
-            printf("Steak Menu! Ví, Ví, ce moi! cos i is %u\n", i);
-            consume_entree(); // 3 course steak dinner
-            consume_steak();
-            consume_dessert();
-    } // end swtich 
+	switch (i) {
+		case 0:
+			Sio_puts("I must have orderd E & V cos i is 0\n"); 
+			consume_entree(); // entree and vegan dish
+			consume_vegan();
+			break;
+		case 1:
+			Sio_puts("Who orderd this stuff(V & E)? ME? 1\n");
+			consume_vegan(); // vegan and dessert
+			consume_dessert();
+			break;
+		case 2:
+			Sio_puts("MEEEEEET! (Steak Only) cos i is 2\n");
+			consume_steak(); // just the steak
+			break;
+		case 3 :
+			Sio_puts("Steak Menu! Ví, Ví, ce moi! cos i is 3\n");
+			consume_entree(); // 3 course steak dinner
+			consume_steak();
+			consume_dessert();
+	} // end swtich 
     gettimeofday(&end, NULL);
     timersub(&end, &start, ret);
     return ret;
@@ -339,7 +333,7 @@ void* producer( void* vargp ) {
 
     while(producers_run) {
         if ( !free_slots ) {
-            printf("The buffer is full :( \n");
+            Sio_puts("The buffer is full :( \n");
             // As the buffer is full set the red light.
             //             "R G B\n".
             fprintf(light, "1 0 0\n");
@@ -368,20 +362,20 @@ void* producer( void* vargp ) {
 			P(&sem_time);
 				timeradd(&thrd_runtime, t, &thrd_runtime);
 			V(&sem_time);
-			free(t); // ef you DELETE ME you will have a MEMORY LEEK!!! 
+			free(t); // if you DELETE ME you will have a MEMORY LEEK!!! 
 
-			P(&last_slot_lock);
+			P(&slot_lock);
 				// ## update add produced value (called prod) to the array.
-				int slot = last_slot++;  				// filled a slot so move index
-				printf("Putting production %u in slot %d -- %d\n", prod, last_slot, slot);
+				int slot = last_slot++;  	// filled a slot so move index
 				if ( last_slot == num_slots ) {
 					last_slot = 0;         	// we must not go out-of-bounds.
 				}
-			V(&last_slot_lock);
-			P(&free_slot_lock);
 				free_slots++; 				// one less free slots available
-			V(&free_slot_lock);
-
+			V(&slot_lock);
+			
+			P(&sem_print);
+				printf("Putting production %u in slot %d\n", prod, slot);
+			V(&sem_print);
 			buff[slot] = prod;
         V(&sem_producers);
     } // end while
@@ -395,6 +389,7 @@ void* producer( void* vargp ) {
 
 // ## The main function for consumer threads #############// 
 void* consumer( void* vargp ) {
+
     // ## used to calculate how long the thread has run.
     struct timeval thrd_runtime;
     timerclear(&thrd_runtime);
@@ -418,23 +413,23 @@ void* consumer( void* vargp ) {
          * HERE YOU MUST REVISE AND ADD YOUR CODE FROM PART 1 *
          ******************************************************/     
 
-        P(&sem_consumers);
-			P(&first_slot_lock);
-				int slot = first_slot++;
-				// first_slot = first_slot + 1;      // update buff index.
+        P(&sem_consumers);			
+			P(&slot_lock);
+				int slot = first_slot++;	// update buff index.
 				if (first_slot == num_slots ) {
-					first_slot = 0;              // we must not go out-of-bounds.
+					first_slot = 0;         // we must not go out-of-bounds.
 				}
-			V(&first_slot_lock);
-			int tmp_prod = buff[slot];
-			buff[slot] = -1;            // zero the slot consumed.
-			P(&free_slot_lock);
-				free_slots++;      // one more free slots available
-			V(&free_slot_lock);
-			printf("Consumer takes prod from slot %d and consumes prod %d \n", slot, tmp_prod);
+				free_slots++;      			// one more free slots available
+			V(&slot_lock);
 			
+			int tmp_prod = buff[slot];
+			buff[slot] = -1;            	// zero the slot consumed.
 			struct timeval* t = consume(tmp_prod);
 			
+			P(&sem_print);
+				printf("Consumer takes prod from slot %d and consumes prod %d \n", slot, tmp_prod);
+			V(&sem_print);
+
 			P(&sem_time);
 				timeradd(&thrd_runtime, t, &thrd_runtime);
 			V(&sem_time);
@@ -462,8 +457,7 @@ pthread_t spawn_producer( thread_info *arg )
      * HERE YOU MUST REVISE AND ADD YOUR CODE FROM PART 1 *
      ******************************************************/
     pthread_t tid;
-    int s;
-    Pthread_create(&tid, NULL, producer, &s);
+    Pthread_create(&tid, NULL, producer, NULL);
     return tid;
 }
 
@@ -477,7 +471,6 @@ pthread_t spawn_consumer( thread_info *arg )
      * HERE YOU MUST REVISE AND ADD YOUR CODE FROM PART 1 *
      ******************************************************/
     pthread_t tid;
-    int s;
-    Pthread_create(&tid, NULL, consumer, &s);
+    Pthread_create(&tid, NULL, consumer, NULL);
     return tid;
 }
