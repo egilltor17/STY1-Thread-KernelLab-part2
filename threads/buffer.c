@@ -152,16 +152,16 @@ int produce_steak() {
 }
 int produce_vegan() {
     rand_sleep(100);
-    system("./micro.sh");
     P(&sem_vegan_produced);
+    	system("./micro.sh");
 		vegan_produced++;
     V(&sem_vegan_produced);
     return 0;
 }
 int produce_dessert() {
     rand_sleep(100);
-    Sio_puts("         _.-.         \n       ,'/ //\\       \n      /// // /)       \n     /// // //|       \n    /// // ///        \n   /// // ///         \n  (`: // ///          \n   `;`: ///           \n   / /:`:/            \n  / /  `'             \n / /                  \n(_/  hh               \n");    
 	P(&sem_dessert_produced);
+    	Sio_puts("         _.-.         \n       ,'/ //\\       \n      /// // /)       \n     /// // //|       \n    /// // ///        \n   /// // ///         \n  (`: // ///          \n   `;`: ///           \n   / /:`:/            \n  / /  `'             \n / /                  \n(_/  hh               \n");    
 		dessert_produced++;
 	V(&sem_dessert_produced);
     return 0;
