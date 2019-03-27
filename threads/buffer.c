@@ -377,7 +377,7 @@ void* producer( void* vargp ) {
 				printf("Putting production %u in slot %d\n", prod, slot);
 			V(&sem_print);
 			buff[slot] = prod;
-        V(&sem_producers);
+        V(&sem_consumers);
     } // end while
     printf("Thread Runningtime was ~%lusec. \n", thrd_runtime.tv_sec);
 
@@ -436,7 +436,7 @@ void* consumer( void* vargp ) {
 
 			free(t); // ef you DELETE ME you will have a MEMORY LEEK!!!     
         
-        V(&sem_consumers);
+        V(&sem_producers);
         
     } // end while
     printf("Thread Runningtime was ~%lusec. \n", thrd_runtime.tv_sec);
