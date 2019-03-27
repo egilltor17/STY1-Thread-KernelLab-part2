@@ -42,8 +42,8 @@ struct regsig_data {
 };
 
 struct list_element {
-    struct regsig_data  *data = NULL;  /* the payload */
-    struct list_element *next = NULL;  /* pointer to the next element */
+    struct regsig_data  *data;  /* the payload */
+    struct list_element *next;  /* pointer to the next element */
 };
 
 struct list_element *head = NULL;
@@ -217,11 +217,11 @@ static ssize_t regsig_store( struct kobject* kobj, struct kobj_attribute *attr, 
   
   if(kstrtol(*{buf[0], buf[1], buf[2], buf[3], buf[4], NULL}, 10, &(node->data->pid))) {
     printk(KERN_INFO "regsig buf's pid is invalid\n");
-    return -1
+    return -1;
   }
   if(kstrtol(*{buf[6], buf[7], NULL}, 10, &(node->data->sig))) {
     printk(KERN_INFO "regsig buf's sig is invalid\n");
-    return -1
+    return -1;
   }
   node->data->pin = buf[9];
   node->data->on = (buf[11] == '1');
