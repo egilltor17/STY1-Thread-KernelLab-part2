@@ -388,7 +388,7 @@ void* producer( void* vargp ) {
     printf("Thread Runningtime was ~%lusec. \n", thrd_runtime.tv_sec);
 
     // this is just for debugging, you may remove this.   
-    print_production_consumptions_state();
+    // print_production_consumptions_state();
 
     return NULL;
 }
@@ -448,7 +448,7 @@ void* consumer( void* vargp ) {
     printf("Thread Runningtime was ~%lusec. \n", thrd_runtime.tv_sec);
 
     // this is just for debugging, you may remove this. 
-    print_production_consumptions_state();
+    // print_production_consumptions_state();
 
     return NULL;
 }
