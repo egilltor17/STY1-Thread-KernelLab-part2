@@ -15,14 +15,20 @@ void sigint_handler (int sig) {
 }
 
 void print_production_consumptions_state() {
-    char string [200];
-    sprintf(string, "Entrees: \n\tREADY(produced)= %d \n\tSOLD(consumed)=%d\n", entree_produced, entree_consumed);
-    Sio_puts(string);
+    // char string [200];
+    char string [800];
+	P(&sem_print);
+    	sprintf(string, "Entrees: \n\tREADY(produced)= %d \n\tSOLD(consumed)=%d\nSteaks: \n\tREADY(produced)= %d \n\tSOLD(consumed)=%d\nVegan: \n\tREADY(produced)= %d \n\tSOLD(consumed)=%d\nDesserts: \n\tREADY(produced)= %d \n\tSOLD(consumed)=%d\n", entree_produced, entree_consumed, steaks_produced, steaks_consumed, vegan_produced, vegan_consumed, dessert_produced, dessert_consumed);
+	V(&sem_print);
+    /* 
+	sprintf(string, "Entrees: \n\tREADY(produced)= %d \n\tSOLD(consumed)=%d\n", entree_produced, entree_consumed);
+    Sio_puts(string)
     sprintf(string, "Steaks: \n\tREADY(produced)= %d \n\tSOLD(consumed)=%d\n", steaks_produced, steaks_consumed);
     Sio_puts(string);
     sprintf(string, "Vegan: \n\tREADY(produced)= %d \n\tSOLD(consumed)=%d\n", vegan_produced, vegan_consumed);
     Sio_puts(string);
-    sprintf(string, "Desserts: \n\tREADY(produced)= %d \n\tSOLD(consumed)=%d\n", dessert_produced, dessert_consumed);
+    sprintf(string, "Desserts: \n\tREADY(produced)= %d \n\tSOLD(consumed)=%d\n", dessert_produced, dessert_consumed); 
+	*/
     Sio_puts(string);
 }
 
