@@ -451,7 +451,7 @@ pthread_t spawn_producer( thread_info *arg )
 {
     printf("Spawning thread %d as a producer \n", arg->thread_nr);
   
-    producer(NULL);
+    // producer(NULL);
     /******************************************************
      * MISSING CODE 5/6                                   *
      * HERE YOU MUST REVISE AND ADD YOUR CODE FROM PART 1 *
@@ -465,7 +465,7 @@ pthread_t spawn_consumer( thread_info *arg )
 {
     printf("Spawning thread %d as a consumer\n", arg->thread_nr);
 
-    consumer(NULL);
+    // consumer(NULL);
     /******************************************************
      * MISSING CODE 6/6                                   *
      * HERE YOU MUST REVISE AND ADD YOUR CODE FROM PART 1 *
