@@ -212,11 +212,15 @@ static ssize_t regsig_store( struct kobject* kobj, struct kobj_attribute *attr, 
     return -2;
   }
 
-  struct list_element *node = kmalloc(sizeof(struct list_element), GFP_KERNEL);
+  struct list_element *node;
+  node = kmalloc(sizeof(struct list_element), GFP_KERNEL);
   node->data = kmalloc(sizeof(struct regsig_data), GFP_KERNEL);
   node->next = NULL;
-  char pid_s[6] = {buf[0], buf[1], buf[2], buf[3], buf[4], '\0'};
-  char sig_s[3] = {buf[6], buf[7], '\0'};
+
+  char pid_s[6];
+  char sig_s[3];
+  pid_s = {buf[0], buf[1], buf[2], buf[3], buf[4], '\0'};
+  sig_s = {buf[6], buf[7], '\0'};
   if(kstrtol(pid_s, 10, &(node->data->pid))) {
     printk(KERN_INFO "regsig buf's pid is invalid\n");
     return -1;
@@ -230,7 +234,7 @@ static ssize_t regsig_store( struct kobject* kobj, struct kobj_attribute *attr, 
 
   if(head == NULL) {
     head = node;
-    head->next == NULL;
+    head->next = NULL;
     return count;
   }
   if(head->data->pid <= node->data->pid) {
@@ -245,8 +249,11 @@ static ssize_t regsig_store( struct kobject* kobj, struct kobj_attribute *attr, 
     return count;
   }
 
-  struct list_element *prev = head;
-  struct list_element *runner = head->next;
+  struct list_element *prev;
+  struct list_element *runner;
+  prev = head;
+  runner = head->next;
+  
   while(runner != NULL && runner->data->pid < node->data->pid) {
     prev = runner;
     runner = runner->next;
