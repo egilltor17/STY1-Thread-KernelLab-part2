@@ -35,8 +35,8 @@ int led_init_ok = 0;
 int c; // used for error checking.
 
 struct regsig_data {
-  int pid;
-  int sig;
+  long pid;
+  long sig;
   char pin;
   int on;
 };
