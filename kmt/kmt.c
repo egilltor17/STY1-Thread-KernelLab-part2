@@ -188,7 +188,7 @@ static ssize_t light_show( struct kobject *kobj, struct kobj_attribute *attr, ch
  *    X   X   XXXXX   XXXX   XXXX    X    XXXX    *
  ***************************************************/
 
-static void exit_light ( void ) {
+static void exit_regsig ( void ) {
   /***********************************************************
    * HERE YOU HAVE TO DO ALL CLEAN NEEDED ON MODULE REMOVAL  *
    * REMEMBER THAT YOU WILL NEED TO RELEASE THE GPIO PINS    *
@@ -313,7 +313,7 @@ static ssize_t regsig_show( struct kobject *kobj, struct kobj_attribute *attr, c
    ***********************************************************/
 
   size = 0;
-  while(runner != null) {
+  while(runner != NULL) {
     sprintf(buf[size], "%ld %ld %c %d\n", 
       runner->data->pid, runner->data->sig, runner->data->pin, runner->data->on);
     size += 13;
