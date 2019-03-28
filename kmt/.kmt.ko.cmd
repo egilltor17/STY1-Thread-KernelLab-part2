@@ -1,0 +1,1 @@
+cmd_/home/pi/STY1-Thread-KernelLab-part2/kmt/kmt.ko := ld -EL -r  -T ./scripts/module-common.lds --build-id  -o /home/pi/STY1-Thread-KernelLab-part2/kmt/kmt.ko /home/pi/STY1-Thread-KernelLab-part2/kmt/kmt.o /home/pi/STY1-Thread-KernelLab-part2/kmt/kmt.mod.o ;  true
