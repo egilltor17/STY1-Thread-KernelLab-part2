@@ -9,9 +9,19 @@ FILE* devrand;
 // ## Signal handler to handle SIGINT (Ctrl-C)
 void sigint_handler (int sig) {
     printf("\n\nCtrl-C was caught\n");
-    printf("Halting all threads..\n\n");
-    producers_run = 0;
-    consumers_run = 0;
+    if(producers_run) {
+        printf("Halting all production threads..\n\n");
+        producers_run = 0;
+        return;
+    } else {
+        printf("Halting all consumption threads..\n\n");
+        consumers_run = 0;
+        return;
+    } 
+    if(!consumers_run) {
+        printf("All threads have halted waiting for them to spool down\n\n");
+    }
+
 }
 
 void print_production_consumptions_state() {

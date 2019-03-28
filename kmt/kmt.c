@@ -188,6 +188,23 @@ static ssize_t light_show( struct kobject *kobj, struct kobj_attribute *attr, ch
  *    X   X   XXXXX   XXXX   XXXX    X    XXXX    *
  ***************************************************/
 
+static void exit_light ( void ) {
+  /***********************************************************
+   * HERE YOU HAVE TO DO ALL CLEAN NEEDED ON MODULE REMOVAL  *
+   * REMEMBER THAT YOU WILL NEED TO RELEASE THE GPIO PINS    *
+   ***********************************************************/
+  struct list_element *prev = head;
+  
+  while(head != NULL){
+    head = head->next;
+    kfree(prev->data);
+    kfree(prev);
+    prev = head;
+  }
+  
+  return;
+}
+
 // ## Here is the function for writing to the /sys/regsig/regsig file.
 static ssize_t regsig_store( struct kobject* kobj, struct kobj_attribute *attr, const char* buf, size_t count) {
   /***********************************************************
@@ -206,29 +223,49 @@ static ssize_t regsig_store( struct kobject* kobj, struct kobj_attribute *attr, 
    ***********************************************************/
   /* Data: PPPPP SS RGB O\n    -    pid, signal, RGB, ON/OFF */
 
+  struct list_element *node;
+  struct list_element *prev;
+  struct list_element *runner;
+  
+  char pid_s[6]; // {buf[0], buf[1], buf[2], buf[3], buf[4], '\0'};
+  // char sig_s[3]; // {buf[6], buf[7], '\0'};
+  
+  /* The data partitions must be seperated by a space */
   /*   length            pid               signal           RGB              ON/OFF     */
   if(count != 13 || buf[5] != ' ' || buf[8] != ' ' || buf[10] != ' ' || buf[12] != '\n') {
     printk(KERN_INFO "regsig buf has wrong input format\n");
     return -2;
   }
 
-  struct list_element *node;
   node = kmalloc(sizeof(struct list_element), GFP_KERNEL);
   node->data = kmalloc(sizeof(struct regsig_data), GFP_KERNEL);
   node->next = NULL;
 
-  char pid_s[6] = {buf[0], buf[1], buf[2], buf[3], buf[4], '\0'};
-  char sig_s[3] = {buf[6], buf[7], '\0'};
+  // memcpy(pid_s, buf, 5);
+  // memcpy(sig_s, buf, 2);
+
+  sscanf(buf, "%c%c%c%c%c %d %c %d\n", pid_s[0], pid_s[1], pid_s[2], pid_s[3], pid_s[4], node->data->sig, node->data->pin, node->data->on);
+  pid_s[6] = '\0';
+  // sig_s[3] = '\0';
+
+  /* Transforn the pid partition of the string to a long and store it */
   if(kstrtol(pid_s, 10, &(node->data->pid))) {
-    printk(KERN_INFO "regsig buf's pid is invalid\n");
+    printk(KERN_INFO "regsig buf's pid is invalid, must be 5 zero-padded digits\n");
     return -1;
   }
+  /* Transforn the sig partition of the string to a long and store it */
+  /* 
   if(kstrtol(sig_s, 10, &(node->data->sig))) {
-    printk(KERN_INFO "regsig buf's sig is invalid\n");
+    printk(KERN_INFO "regsig buf's sig is invalid, must be 2 zero-padded digits\n");
     return -1;
   }
-  node->data->pin = buf[9];
-  node->data->on = (buf[11] == '1');
+  */
+  if(buf[9] != 'R' || buf[9] != 'G' || buf[9] != 'B') {
+    printk(KERN_INFO "regsig buf's pin is invalid, must be 'R', 'G' or 'B'\n");
+    return -1;
+  } 
+  node->data->pin = buf[9];             /* The pin is the char R, G or B */
+  // node->data->on = (buf[11] == '1');    /* The action is 1 for on and 0 for off */
 
   if(head == NULL) {
     head = node;
@@ -247,9 +284,8 @@ static ssize_t regsig_store( struct kobject* kobj, struct kobj_attribute *attr, 
     return count;
   }
 
-  struct list_element *prev = head;
-  struct list_element *runner = head->next;
-  
+  prev = head;
+  runner = head->next;
   while(runner != NULL && runner->data->pid < node->data->pid) {
     prev = runner;
     runner = runner->next;
@@ -268,21 +304,23 @@ static ssize_t regsig_store( struct kobject* kobj, struct kobj_attribute *attr, 
 
 // ## Here is the function for reading the /sys/light/light file.
 static ssize_t regsig_show( struct kobject *kobj, struct kobj_attribute *attr, char* buf) {
+  int size;
+  struct list_element *runner;
+  
   /***********************************************************
    * You must implement the reqsig_show() function that      *
    * prints out all currently registrations in order of pid. *
    ***********************************************************/
 
-
-  // // // // buf[0] = gpio_get_value(R);
-  // // // // buf[1] = ' ';
-  // // // // buf[2] = gpio_get_value(G);
-  // // // // buf[3] = ' ';
-  // // // // buf[4] = gpio_get_value(B);
-  // // // // buf[5] = '\n';
+  size = 0;
+  while(runner != null) {
+    sprintf(buf[size], "%ld %ld %c %d\n", 
+      runner->data->pid, runner->data->sig, runner->data->pin, runner->data->on);
+    size += 13;
+  }
 
   // THE RETURN VALUE SHOULD BE THE LENGTH OF THE STRING IN buf.
-  return 6;
+  return size;
 }
 
 // ## sysfs variables ## 
@@ -331,7 +369,6 @@ static int kmt_sysfs_init( void ) {
   }
 
   printk(KERN_INFO "kmt Finished light sysfs setup.\n");
-  return 0;
   
   /* regsig ========================================================== */
   if ((regsig_kobj = kobject_create_and_add("regsig", NULL)) == NULL) {
@@ -366,7 +403,7 @@ static int __init init_kmt( void ) {
 static void __exit exit_kmt ( void ) {
   kmt_sysfs_exit( );
   exit_light( );
-  // exit_regsig( );  /* ToDo? */
+  exit_regsig( );
 }
 
 module_init(init_kmt);
