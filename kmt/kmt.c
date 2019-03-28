@@ -11,7 +11,7 @@ MODULE_LICENSE("GPL");
 /* YOU MUST PUT YOUR NAME IN THE AUTHOR INFO */ 
 MODULE_AUTHOR("egilltor17_ernir17_hallgrimura17");
 /* YOU MUST ADD A DESCRIPTION OF YOUR MODULE */
-MODULE_DESCRIPTION("Kernel module to make a RaspberryPi light up LEDs based on a buffer's capasity");
+MODULE_DESCRIPTION("Kernel module to make a RaspberryPi light up LEDs based on a buffer's capacity");
 MODULE_VERSION("0.1");
 
 /* BCM pinout: This is how you should connect the leds to the Pi. 
