@@ -13,15 +13,13 @@ void sigint_handler (int sig) {
         printf("Halting all production threads..\n\n");
         producers_run = 0;
         return;
-    } else {
+    } 
+    if(consumers_run) {
         printf("Halting all consumption threads..\n\n");
         consumers_run = 0;
-        return;
-    } 
-    if(!consumers_run) {
+    } else {
         printf("All threads have halted waiting for them to spool down\n\n");
-    }
-
+    } 
 }
 
 void print_production_consumptions_state() {
