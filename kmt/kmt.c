@@ -1,13 +1,18 @@
+#include <linux/kernel.h>
 #include <linux/init.h>
 #include <linux/module.h>
 #include <linux/kthread.h>
 #include <linux/delay.h>
 #include <linux/gpio.h>
 #include <linux/kobject.h>
-
 #include <linux/sched.h>
+#include <linux/sched/signal.h>
 #include <linux/pid.h>
-#include <linux/signal.h> // used to send signals
+#include <asm/uaccess.h>
+#include <linux/fs.h> 
+#include <linux/cdev.h>
+#include <linux/proc_fs.h>
+#include <linux/pid.h>
 
 MODULE_LICENSE("GPL");
 /* YOU MUST PUT YOUR NAME IN THE AUTHOR INFO */ 
@@ -36,14 +41,8 @@ MODULE_VERSION("0.1");
 int led_init_ok = 0;
 int c; // used for error checking.
 
-struct pid_info {
-  char* comm[16];
-  pid_t pid;
-  long  
-};
-
 struct regsig_data {
-  pid_t pid;
+  int pid;
   int sig;
   char pin;
   int on;
@@ -55,6 +54,31 @@ struct list_element {
 };
 
 struct list_element *head = NULL;
+
+
+void myKill(int pid, int sig) {
+  struct task_struct* ts = NULL;
+  struct pid* ps = NULL;
+  rcu_read_lock();
+  ps = find_get_pid(pid);
+  if (ps == NULL) {
+    printk(KERN_INFO "kmt dbg ps is NULL!! \n");
+    rcu_read_unlock();
+    return;
+  } 
+  ts = pid_task( ps, PIDTYPE_PID);
+  if (ts == NULL) {
+    printk(KERN_INFO "kmt dbg ts is NULL!! \n");
+    rcu_read_unlock();
+    return;
+  } 
+  printk(KERN_INFO "kmt dbg KILL! KILL! KILL! \n");
+  if ( send_sig_info(sig, SEND_SIG_NOINFO, ts) < 0) {
+    printk(KERN_INFO "kmt dbg send_sig_info() returned less than zero :( \n");
+  }
+  printk(KERN_INFO "kmt dbg Signal SENT, Are you dead yet??? \n");
+  rcu_read_unlock();
+}
 
 
 // ## functions for the kernel module
@@ -151,19 +175,31 @@ static ssize_t light_store( struct kobject* kobj, struct kobj_attribute *attr, c
    * from 0 to 1 a signal should be sent (but not if it was  *
    * already 1, only if it was chanted from 0 to 1).         *
    ***********************************************************/ 
-  
+  struct list_element *runner = head;
+  int r, g, b;
   /* Validate the input before trying to read from buf */
   if(count != 6 || buf[1] != ' ' || buf[3] != ' ' || buf[5] != '\n') {
     printk(KERN_INFO "light buf has wrong input format\n");
     return -2;
   }
-
-  struct task_struct ts = find_get_task_by_vpid();
+  r = buf[0] == '1';
+  g = buf[2] == '1';
+  b = buf[4] == '1';
+  while(runner != NULL) {
+    if(runner->data->pin == 'R' && (runner->data->on ^ gpio_get_value(R))) {
+      myKill(runner->data->pin, runner->data->sig);  
+    } else if(runner->data->pin == 'G' && (runner->data->on ^ gpio_get_value(G))) {
+      myKill(runner->data->pin, runner->data->sig);  
+    } else if(runner->data->pin == 'B' && (runner->data->on ^ gpio_get_value(B))) {
+      myKill(runner->data->pin, runner->data->sig);  
+    } 
+    runner = runner->next;
+  }
 
   /* turns the LEDs on if the buf has 1's at the correct indices, off otherwise */
-  gpio_set_value(R, buf[0] == '1');
-  gpio_set_value(G, buf[2] == '1');
-  gpio_set_value(B, buf[4] == '1');
+  gpio_set_value(R, r);
+  gpio_set_value(G, g);
+  gpio_set_value(B, b);
 
   return count;
 }

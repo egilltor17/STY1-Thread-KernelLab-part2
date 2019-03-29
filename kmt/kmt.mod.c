@@ -31,10 +31,13 @@ __attribute__((section("__versions"))) = {
 	{ 0x8e865d3c, __VMLINUX_SYMBOL_STR(arm_delay_ops) },
 	{ 0x20246240, __VMLINUX_SYMBOL_STR(gpiod_direction_output_raw) },
 	{ 0x47229b5c, __VMLINUX_SYMBOL_STR(gpio_request) },
-	{ 0xe0dc9a18, __VMLINUX_SYMBOL_STR(gpiod_get_raw_value) },
-	{ 0x91715312, __VMLINUX_SYMBOL_STR(sprintf) },
 	{ 0xbd06913b, __VMLINUX_SYMBOL_STR(gpiod_set_raw_value) },
+	{ 0xbb08e14e, __VMLINUX_SYMBOL_STR(send_sig_info) },
+	{ 0x2121b914, __VMLINUX_SYMBOL_STR(pid_task) },
+	{ 0x848b62f2, __VMLINUX_SYMBOL_STR(find_get_pid) },
+	{ 0xe0dc9a18, __VMLINUX_SYMBOL_STR(gpiod_get_raw_value) },
 	{ 0x3ee15874, __VMLINUX_SYMBOL_STR(gpio_to_desc) },
+	{ 0x91715312, __VMLINUX_SYMBOL_STR(sprintf) },
 	{ 0x2e5810c6, __VMLINUX_SYMBOL_STR(__aeabi_unwind_cpp_pr1) },
 	{ 0x27e1a049, __VMLINUX_SYMBOL_STR(printk) },
 	{ 0xb1ad28e0, __VMLINUX_SYMBOL_STR(__gnu_mcount_nc) },
@@ -46,4 +49,4 @@ __attribute__((section(".modinfo"))) =
 "depends=";
 
 
-MODULE_INFO(srcversion, "A0FE81B558D5FEE1E4CF76A");
+MODULE_INFO(srcversion, "0C90E31F89DF116F20D726B");
