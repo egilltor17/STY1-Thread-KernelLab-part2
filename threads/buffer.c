@@ -10,35 +10,24 @@ FILE* devrand;
 
 // ## Signal handler to handle SIGINT (Ctrl-C)
 void sigint_handler (int sig) {
-    printf("\n\nCtrl-C was caught\n");
-    if(producers_run) {
-        printf("Halting all production threads..\n\n");
-        producers_run = 0;
-        return;
-    } 
-    if(consumers_run) {
-        printf("Halting all consumption threads..\n\n");
-        consumers_run = 0;
-    } else {
-        printf("All threads have halted waiting for them to spool down\n\n");
-    } 
+    printf("\n\nCtrl-C was caught\nHalting all production threads..\n\n");
+    /* we have functionality to kill off the consumers when the buffer empties
+       once the producer threads have been stopped the consumers finish 
+       their last task before breaking out of the loop one at a time */
+    producers_run = 0;          
+    // consumers_run = 0;          
+        
 }
 
 void print_production_consumptions_state() {
-    // char string [200];
-    char string [800];
-	P(&sem_print);
-    	sprintf(string, "Entrees: \n\tREADY(produced)= %d \n\tSOLD(consumed)=%d\nSteaks: \n\tREADY(produced)= %d \n\tSOLD(consumed)=%d\nVegan: \n\tREADY(produced)= %d \n\tSOLD(consumed)=%d\nDesserts: \n\tREADY(produced)= %d \n\tSOLD(consumed)=%d\n", entree_produced, entree_consumed, steaks_produced, steaks_consumed, vegan_produced, vegan_consumed, dessert_produced, dessert_consumed);
-	V(&sem_print);
-    /* 
+    char string [200];
 	sprintf(string, "Entrees: \n\tREADY(produced)= %d \n\tSOLD(consumed)=%d\n", entree_produced, entree_consumed);
-    Sio_puts(string)
+    Sio_puts(string);
     sprintf(string, "Steaks: \n\tREADY(produced)= %d \n\tSOLD(consumed)=%d\n", steaks_produced, steaks_consumed);
     Sio_puts(string);
     sprintf(string, "Vegan: \n\tREADY(produced)= %d \n\tSOLD(consumed)=%d\n", vegan_produced, vegan_consumed);
     Sio_puts(string);
     sprintf(string, "Desserts: \n\tREADY(produced)= %d \n\tSOLD(consumed)=%d\n", dessert_produced, dessert_consumed); 
-	*/
     Sio_puts(string);
 }
 
@@ -93,7 +82,6 @@ void buffer_init(unsigned int buffersize) {
 
 	Sem_init(&sem_spoon, 0, 1);					/* mutex    	- protects the number of avalible spoons */
 	Sem_init(&sem_time, 0, 1);					/* mutex	   	- protects the prosses time */
-	Sem_init(&sem_print, 0, 1);					/* mutex	   	- protects the print statements */
 	Sem_init(&sem_sound, 0, 1);					/* mutex	   	- protects the sound I/O */
 
 	Sem_init(&sem_entree_produced, 0, 1);		/* mutex       	- protects the entree_produced  counter */
@@ -147,6 +135,8 @@ void buffer_exit(void) {
 // ## NOR SHORTEN THE CALLS TO rand_sleep() NOR SKIP OUTPUT#//
 // #########################################################//
 // ## The work functions for producers #####################//
+
+/* here we have a boatload of counters that need to beprotected */
 int produce_entree() {
     rand_sleep(100);
 	P(&sem_entree_produced);
@@ -164,7 +154,7 @@ int produce_steak() {
 int produce_vegan() {
     rand_sleep(100);
     P(&sem_sound);
-    	system("./micro.sh");       // We are not sure how many sounds the raspberry can play at once
+    	system("./micro.sh");       // We are not sure how many sounds the raspberry can play at once so we ended ot with one for safty
     V(&sem_sound);
     P(&sem_vegan_produced);
 		vegan_produced++;
@@ -222,6 +212,8 @@ struct timeval* produce(unsigned int* i) {
 // ## NOR SHORTEN THE CALLS TO rand_sleep() NOR SKIP OUTPUT#//
 // #########################################################//
 // ## The work functions for consumers #####################//
+
+/* here we have another boatload of counters that need to beprotected */
 int consume_entree(){
     if (entree_produced < 1) {
         // if this happens then something bad is going on :/
@@ -273,7 +265,7 @@ int consume_vegan() {
 		V(&sem_vegan_produced);
         rand_sleep(500);
         P(&sem_sound);
-            system("./munch.sh");       // We are not sure how many sounds the raspberry can play at once
+            system("./munch.sh");       // We are still not sure how many sounds the raspberry can play at once
         V(&sem_sound);
         rand_sleep(500);
         P(&sem_vegan_consumed);
@@ -361,7 +353,8 @@ void* producer( void* vargp ) {
             fflush(light);
             // break;
             // char string[13];
-            // sprintf(string, "%d 10 R 1\n", );
+            // pid_t pid = GET_PID()....;
+            // sprintf(string, "%d 10 R 1\n", pid);
             // fprintf(regsig, string);
             // fflush(regsig);
         } else {
@@ -383,25 +376,26 @@ void* producer( void* vargp ) {
 			struct timeval* t = produce(&prod);             /* returns a timeval struct that was malloced. */
 			P(&sem_time);
 				timeradd(&thrd_runtime, t, &thrd_runtime);  /* add to the thread running time total and free t. */
+			V(&sem_time);
 			free(t);                                        /* if you DELETE ME you will have a MEMORY LEEK!!! */
 
-			//P(&slot_lock);
+			P(&slot_lock);                                  /* our second favorite critical section */
 				int slot = last_slot++;  	                /* filled a slot so move index */
 				if ( last_slot == num_slots ) {
 					last_slot = 0;         	                /* we must not go out-of-bounds. */
 				}
 				free_slots--; 				                /* one less free slots available */
-			//V(&slot_lock);
+			V(&slot_lock);
 			
-			//P(&sem_print);
-				printf("Putting production %u in slot %d\n", prod, slot);
-			//V(&sem_print);
+            char string[50];                                /* thread safer prints, who need to read thing immediately?.... */
+			sprintf(string, "Putting production %u in slot %d\n", prod, slot);
+            Sio_puts(string);
+
 			buff[slot] = prod;                              /* update add produced value (called prod) to the array. */
-			V(&sem_time);
         V(&sem_consumers);
     } // end while
-    printf("Thread Runningtime was ~%lusec. \n", thrd_runtime.tv_sec);
-
+    printf("\n\nP: Thread Runningtime was ~%lusec. \n\n\n", thrd_runtime.tv_sec);
+    
     return NULL;
 }
 
@@ -412,13 +406,15 @@ void* consumer( void* vargp ) {
     struct timeval thrd_runtime;
     timerclear(&thrd_runtime);
     while (consumers_run) {
-        if (num_slots - free_slots == 0){
+        if (num_slots - free_slots == 0) {
             printf("The buffer is empty :( \n");
             // As the buffer is empty we start with a green light 
             //             "R G B\n".
             fprintf(light, "0 1 0\n");
             fflush(light);
-            // break;
+            if(!producers_run) { 
+                V(&sem_consumers);
+            }
         } else {
             // Neither full nor empty so we show blue/yellow.
             //             "R G B\n".
@@ -431,34 +427,48 @@ void* consumer( void* vargp ) {
          * HERE YOU MUST REVISE AND ADD YOUR CODE FROM PART 1 *
          ******************************************************/     
 
-        P(&sem_consumers);			
-			
-            P(&sem_time);
-            // P(&slot_lock);
-				int slot = first_slot++;	// update buff index.
+        P(&sem_consumers);	
+            if(num_slots - free_slots) {
+            int sem;                                /* used to read sem value */
+            P(&slot_lock);                          /* our favorite critical section */
+            if(sem_getvalue(&sem_producers, &sem)) {
+                printf("error:cant get sem_producers value\n");
+            }
+            if(sem == num_slots) {
+                V(&sem_consumers);                      /* the last producer opens the */
+                consumers_run = 0;
+            }
+			V(&slot_lock);
+            
+            P(&slot_lock);                          /* our favorite critical section */
+				int slot = first_slot++;	        /* update buff index. */
 				if (first_slot == num_slots ) {
-					first_slot = 0;         // we must not go out-of-bounds.
+					first_slot = 0;                 /* we must not go out-of-bounds. */
 				}
-			// V(&slot_lock);
+			V(&slot_lock);
 			
-			int tmp_prod = buff[slot];
-			buff[slot] = -1;            	// zero the slot consumed.
+			int tmp_prod = buff[slot];              /* is safe since scope is a local variable */
 			struct timeval* t = consume(tmp_prod);
-			char string[60];
+			buff[slot] = -1;            	        /* zero the slot consumed. */
+			char string[60];                    	/* thread safer prints,  who need to read thing immediately?.... */
 			sprintf(string ,"Consumer takes prod from slot %d and consumes prod %d\n", slot, tmp_prod);
             Sio_puts(string);
 			
+            P(&sem_time);                           /* the whole tile thing seams important, so is the free_slots counter */
 				timeradd(&thrd_runtime, t, &thrd_runtime);
-				free_slots++;      			// one more free slots available
+				free_slots++;      			        /* one more free slots available */
+			V(&sem_time);
 
-			free(t);                        // if you DELETE ME you will have a MEMORY LEEK!!!     
-			// V(&sem_time);
-        
+			free(t);                                /* if you DELETE ME you will have a MEMORY LEEK!!! */
+            } else {             
+                V(&sem_producers);
+                break;                                  /* the consumer has finished its task and is now ready to die */
+            }
         V(&sem_producers);
         
     } // end while
-    printf("Thread Runningtime was ~%lusec. \n", thrd_runtime.tv_sec);
-
+    printf("\n\nC: Thread Runningtime was ~%lusec. \n\n\n", thrd_runtime.tv_sec);
+    //V(&sem_producers);
     return NULL;
 }
 
