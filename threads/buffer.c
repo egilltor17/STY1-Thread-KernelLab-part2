@@ -2,6 +2,8 @@
 
 #define LIGHTFILE "/sys/light/light"
 FILE* light;
+#define REGSIGFILE "/sys/light/regsig"
+FILE* regsig;
 #define RANDFILE "/dev/random"
 FILE* devrand;
 
@@ -89,9 +91,10 @@ void buffer_init(unsigned int buffersize) {
     Sem_init(&sem_consumers, 0, 0);           	/* full slots  	- consumer part of consumer/producer algo. */
     Sem_init(&slot_lock, 0, 1);      			/* mutex       	- protects the buffer indexes  */
 
-	Sem_init(&sem_spoon, 0, 2);					/* nr of spoons	- protects the number of avalible spoons */
+	Sem_init(&sem_spoon, 0, 1);					/* mutex    	- protects the number of avalible spoons */
 	Sem_init(&sem_time, 0, 1);					/* mutex	   	- protects the prosses time */
 	Sem_init(&sem_print, 0, 1);					/* mutex	   	- protects the print statements */
+	Sem_init(&sem_sound, 0, 1);					/* mutex	   	- protects the sound I/O */
 
 	Sem_init(&sem_entree_produced, 0, 1);		/* mutex       	- protects the entree_produced  counter */
 	Sem_init(&sem_entree_consumed, 0, 1);		/* mutex       	- protects the entree_consumed  counter */
@@ -160,8 +163,10 @@ int produce_steak() {
 }
 int produce_vegan() {
     rand_sleep(100);
+    P(&sem_sound);
+    	system("./micro.sh");       // We are not sure how many sounds the raspberry can play at once
+    V(&sem_sound);
     P(&sem_vegan_produced);
-    	system("./micro.sh");
 		vegan_produced++;
     V(&sem_vegan_produced);
     return 0;
@@ -267,7 +272,9 @@ int consume_vegan() {
         	vegan_produced--;
 		V(&sem_vegan_produced);
         rand_sleep(500);
-        system("./munch.sh");
+        P(&sem_sound);
+            system("./munch.sh");       // We are not sure how many sounds the raspberry can play at once
+        V(&sem_sound);
         rand_sleep(500);
         P(&sem_vegan_consumed);
 			vegan_consumed++;
@@ -279,7 +286,7 @@ int consume_vegan() {
 int consume_dessert() {
     // ## The resturant only has two spoons :( Ppl. will have to share!
     // #################################################################
-    // static int spoon = 2; // ## YOU MAY NOT CHANGE THIS!! ##############
+    static int spoon = 2; // ## YOU MAY NOT CHANGE THIS!! ##############
     // #################################################################
     if (dessert_produced < 1) {
         // ## if this happens then something bad is going on :/
@@ -290,8 +297,8 @@ int consume_dessert() {
     } else {
         // ## wait for the a spoon.. (is this the best way to do this??)
 		P(&sem_spoon);
-		// 	spoon--;
-		// V(&sem_spoon);
+		    spoon--;
+		V(&sem_spoon);
 		P(&sem_dessert_produced);
 			dessert_produced--;
 		V(&sem_dessert_produced);
@@ -299,8 +306,8 @@ int consume_dessert() {
 		P(&sem_dessert_consumed);
 			dessert_consumed++;
 		V(&sem_dessert_consumed);
-		// P(&sem_spoon);
-		// 	spoon++;
+		P(&sem_spoon);
+		    spoon++;
 		V(&sem_spoon);
     }
     return 0;   
@@ -353,6 +360,10 @@ void* producer( void* vargp ) {
             fprintf(light, "1 0 0\n");
             fflush(light);
             // break;
+            // char string[13];
+            // sprintf(string, "%d 10 R 1\n", );
+            // fprintf(regsig, string);
+            // fflush(regsig);
         } else {
             // Neither full nor empty so we show blue/yellow.
             //             "R G B\n".
@@ -368,35 +379,28 @@ void* producer( void* vargp ) {
 		// ## if there is a free slot we produce to fill it.
         P(&sem_producers);
 
-			// ## produce() takes reference to the product to produce. 
-			unsigned int prod = 0;
-			// ## returns a timeval struct that was malloced. 
-			struct timeval* t = produce(&prod);
-			// ## add to the thread running time total and free t.
+			unsigned int prod = 0;                          /* produce() takes reference to the product to produce. */
+			struct timeval* t = produce(&prod);             /* returns a timeval struct that was malloced. */
 			P(&sem_time);
-				timeradd(&thrd_runtime, t, &thrd_runtime);
-			V(&sem_time);
-			free(t); // if you DELETE ME you will have a MEMORY LEEK!!! 
+				timeradd(&thrd_runtime, t, &thrd_runtime);  /* add to the thread running time total and free t. */
+			free(t);                                        /* if you DELETE ME you will have a MEMORY LEEK!!! */
 
-			P(&slot_lock);
-				// ## update add produced value (called prod) to the array.
-				int slot = last_slot++;  	// filled a slot so move index
+			//P(&slot_lock);
+				int slot = last_slot++;  	                /* filled a slot so move index */
 				if ( last_slot == num_slots ) {
-					last_slot = 0;         	// we must not go out-of-bounds.
+					last_slot = 0;         	                /* we must not go out-of-bounds. */
 				}
-				free_slots++; 				// one less free slots available
-			V(&slot_lock);
+				free_slots--; 				                /* one less free slots available */
+			//V(&slot_lock);
 			
-			P(&sem_print);
+			//P(&sem_print);
 				printf("Putting production %u in slot %d\n", prod, slot);
-			V(&sem_print);
-			buff[slot] = prod;
+			//V(&sem_print);
+			buff[slot] = prod;                              /* update add produced value (called prod) to the array. */
+			V(&sem_time);
         V(&sem_consumers);
     } // end while
     printf("Thread Runningtime was ~%lusec. \n", thrd_runtime.tv_sec);
-
-    // this is just for debugging, you may remove this.   
-    // print_production_consumptions_state();
 
     return NULL;
 }
@@ -428,35 +432,32 @@ void* consumer( void* vargp ) {
          ******************************************************/     
 
         P(&sem_consumers);			
-			P(&slot_lock);
+			
+            P(&sem_time);
+            // P(&slot_lock);
 				int slot = first_slot++;	// update buff index.
 				if (first_slot == num_slots ) {
 					first_slot = 0;         // we must not go out-of-bounds.
 				}
-				free_slots++;      			// one more free slots available
-			V(&slot_lock);
+			// V(&slot_lock);
 			
 			int tmp_prod = buff[slot];
 			buff[slot] = -1;            	// zero the slot consumed.
 			struct timeval* t = consume(tmp_prod);
+			char string[60];
+			sprintf(string ,"Consumer takes prod from slot %d and consumes prod %d\n", slot, tmp_prod);
+            Sio_puts(string);
 			
-			P(&sem_print);
-				printf("Consumer takes prod from slot %d and consumes prod %d \n", slot, tmp_prod);
-			V(&sem_print);
-
-			P(&sem_time);
 				timeradd(&thrd_runtime, t, &thrd_runtime);
-			V(&sem_time);
+				free_slots++;      			// one more free slots available
 
-			free(t); // ef you DELETE ME you will have a MEMORY LEEK!!!     
+			free(t);                        // if you DELETE ME you will have a MEMORY LEEK!!!     
+			// V(&sem_time);
         
         V(&sem_producers);
         
     } // end while
     printf("Thread Runningtime was ~%lusec. \n", thrd_runtime.tv_sec);
-
-    // this is just for debugging, you may remove this. 
-    // print_production_consumptions_state();
 
     return NULL;
 }
@@ -464,8 +465,6 @@ void* consumer( void* vargp ) {
 pthread_t spawn_producer( thread_info *arg )
 {
     printf("Spawning thread %d as a producer \n", arg->thread_nr);
-  
-    // producer(NULL);
     /******************************************************
      * MISSING CODE 5/6                                   *
      * HERE YOU MUST REVISE AND ADD YOUR CODE FROM PART 1 *
@@ -478,8 +477,6 @@ pthread_t spawn_producer( thread_info *arg )
 pthread_t spawn_consumer( thread_info *arg )
 {
     printf("Spawning thread %d as a consumer\n", arg->thread_nr);
-
-    // consumer(NULL);
     /******************************************************
      * MISSING CODE 6/6                                   *
      * HERE YOU MUST REVISE AND ADD YOUR CODE FROM PART 1 *

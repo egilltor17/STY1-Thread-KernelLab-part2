@@ -69,6 +69,7 @@ sem_t slot_lock;     // protects the buffer indexes
 sem_t sem_spoon;
 sem_t sem_time;
 sem_t sem_print;
+sem_t sem_sound;
 
 sem_t sem_entree_produced;
 sem_t sem_entree_consumed;

@@ -21,6 +21,8 @@ int main(int argc, char **argv)
             arg3 = atoi(argv[3]);
         case 3:
             arg2 = atoi(argv[2]);
+        case 2:
+            arg1 = atoi(argv[1]);
             if( arg2 > (2*arg1) ) {
                 // ## DO NOT CHANGE THIS ###################################
                 // ## If you want more consumers you will have to spawn them
@@ -29,8 +31,6 @@ int main(int argc, char **argv)
                 arg2 = arg1*2;
                 sleep(1);
             }
-        case 2:
-            arg1 = atoi(argv[1]);
         case 1:
             break;
     }
