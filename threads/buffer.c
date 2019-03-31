@@ -59,7 +59,9 @@ void buffer_init(unsigned int buffersize) {
     first_slot = 0;         // the front of circle
     last_slot = 0;          // the end of the circle
     free_slots = num_slots; // the number of empty slots
-    
+    dead = 0;
+
+
     entree_produced  = 0;
     entree_consumed  = 0;
     steaks_produced  = 0;
@@ -83,6 +85,7 @@ void buffer_init(unsigned int buffersize) {
 	Sem_init(&sem_spoon, 0, 1);					/* mutex    	- protects the number of avalible spoons */
 	Sem_init(&sem_time, 0, 1);					/* mutex	   	- protects the prosses time */
 	Sem_init(&sem_sound, 0, 1);					/* mutex	   	- protects the sound I/O */
+	Sem_init(&sem_death, 0, 1);					/* mutex	   	- protects the death cascade */
 
 	Sem_init(&sem_entree_produced, 0, 1);		/* mutex       	- protects the entree_produced  counter */
 	Sem_init(&sem_entree_consumed, 0, 1);		/* mutex       	- protects the entree_consumed  counter */
@@ -395,7 +398,7 @@ void* producer( void* vargp ) {
         V(&sem_consumers);
     } // end while
     printf("\n\nP: Thread Runningtime was ~%lusec. \n\n\n", thrd_runtime.tv_sec);
-    
+
     return NULL;
 }
 
@@ -412,8 +415,13 @@ void* consumer( void* vargp ) {
             //             "R G B\n".
             fprintf(light, "0 1 0\n");
             fflush(light);
-            if(!producers_run) { 
+            if(!producers_run && !dead) { 
+                P(&sem_death);
+                    dead++;
+                V(&sem_death);
+
                 V(&sem_consumers);
+                V(&sem_producers);
             }
         } else {
             // Neither full nor empty so we show blue/yellow.
@@ -427,19 +435,8 @@ void* consumer( void* vargp ) {
          * HERE YOU MUST REVISE AND ADD YOUR CODE FROM PART 1 *
          ******************************************************/     
 
-        P(&sem_consumers);	
-            if(num_slots - free_slots) {
-            int sem;                                /* used to read sem value */
-            P(&slot_lock);                          /* our favorite critical section */
-            if(sem_getvalue(&sem_producers, &sem)) {
-                printf("error:cant get sem_producers value\n");
-            }
-            if(sem == num_slots) {
-                V(&sem_consumers);                      /* the last producer opens the */
-                consumers_run = 0;
-            }
-			V(&slot_lock);
-            
+        P(&sem_consumers);			
+		if (num_slots - free_slots || producers_run) { /* we skip the consumption if producers have stoped and there is nothing to consume */              
             P(&slot_lock);                          /* our favorite critical section */
 				int slot = first_slot++;	        /* update buff index. */
 				if (first_slot == num_slots ) {
@@ -460,15 +457,15 @@ void* consumer( void* vargp ) {
 			V(&sem_time);
 
 			free(t);                                /* if you DELETE ME you will have a MEMORY LEEK!!! */
-            } else {             
-                V(&sem_producers);
-                break;                                  /* the consumer has finished its task and is now ready to die */
-            }
+        } else {
+            V(&sem_consumers);                      /* since there are no more producers the consumers have nothing to consume */
+            break;                                  /* the consumer has finished its task and is now ready to die              */
+        }
         V(&sem_producers);
         
     } // end while
     printf("\n\nC: Thread Runningtime was ~%lusec. \n\n\n", thrd_runtime.tv_sec);
-    //V(&sem_producers);
+    V(&sem_producers);
     return NULL;
 }
 
