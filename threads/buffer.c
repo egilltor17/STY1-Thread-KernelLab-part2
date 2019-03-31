@@ -415,14 +415,13 @@ void* consumer( void* vargp ) {
             //             "R G B\n".
             fprintf(light, "0 1 0\n");
             fflush(light);
+            P(&sem_death);                  /* only one thread may triger the consumer flush */
             if(!producers_run && !dead) { 
-                P(&sem_death);
-                    dead++;
-                V(&sem_death);
-
+                dead++;                     /* defaults to 0 */
                 V(&sem_consumers);
                 V(&sem_producers);
             }
+            V(&sem_death);
         } else {
             // Neither full nor empty so we show blue/yellow.
             //             "R G B\n".
